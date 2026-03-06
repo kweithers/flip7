@@ -1,0 +1,17 @@
+[project]
+name = "flip7"
+version = "0.1.0"
+description = "Reinforcement learning agents for the Flip 7 card game"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "gymnasium",
+    "stable-baselines3",
+    "torch<2.3",
+    "onnx",
+    "tensorboard",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]

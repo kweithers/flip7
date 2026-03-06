@@ -1,0 +1,24 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Node
+node_modules/
+
+# TensorBoard logs
+tb_logs/
+
+# Intermediate training artifacts
+models/ppo_stage1.zip
+models/ppo_selfplay_temp.zip
+models/vec_normalize_stage1.pkl
+
+# pytest
+.pytest_cache/
