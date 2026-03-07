@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount } from "svelte";
 	import {
 		Game,
 		handSum,
 		isDone,
 		roundScore,
 		WINNING_SCORE,
-		type GameResult
-	} from '$lib/gameEngine';
-	import { OnnxAgent } from '$lib/onnxAgent';
-	import { QAgent } from '$lib/qAgent';
+		type GameResult,
+	} from "$lib/gameEngine";
+	import { OnnxAgent } from "$lib/onnxAgent";
+	import { QAgent } from "$lib/qAgent";
 
-	type AgentType = 'q' | 'ppo';
+	type AgentType = "random" | "q" | "ppo";
 
 	const PLAYER_IDX = 0;
 	const AI_IDX = 1;
@@ -23,7 +23,7 @@
 	let qReady = $state(false);
 	let selectedAgent: AgentType | null = $state(null);
 	let playerTurn = $state(false);
-	let gameMessage = $state('Loading AI models...');
+	let gameMessage = $state("Select an opponent.");
 	let gameResult: GameResult | null = $state(null);
 	let aiThinking = $state(false);
 
@@ -54,20 +54,22 @@
 		aiStayed = game.players[AI_IDX].stayed;
 		playerHandSum = handSum(game.players[PLAYER_IDX]);
 		aiHandSum = handSum(game.players[AI_IDX]);
-		deckCounts = [...game.deck.cardCounts().entries()].sort((a, b) => a[0] - b[0]);
+		deckCounts = [...game.deck.cardCounts().entries()].sort(
+			(a, b) => a[0] - b[0],
+		);
 		deckRemaining = game.deck.remaining();
 	}
 
 	onMount(async () => {
 		const results = await Promise.allSettled([
-			qAgent.init('/q_table.json').then(() => { qReady = true; }),
-			onnxAgent.init('/ppo_flip7.onnx', '/normalize_stats.json').then(() => { onnxReady = true; })
+			qAgent.init("/q_table.json").then(() => {
+				qReady = true;
+			}),
+			onnxAgent.init("/ppo_flip7.onnx", "/normalize_stats.json").then(() => {
+				onnxReady = true;
+			}),
 		]);
-		if (qReady || onnxReady) {
-			gameMessage = 'Select an opponent.';
-		} else {
-			gameMessage = 'Failed to load AI models.';
-		}
+		gameMessage = "Select an opponent.";
 	});
 
 	function startNewGame(agentType: AgentType) {
@@ -91,7 +93,7 @@
 			runAiTurn();
 		} else {
 			playerTurn = true;
-			gameMessage = 'Your turn! Draw or Stay?';
+			gameMessage = "Your turn! Draw or Stay?";
 		}
 	}
 
@@ -103,13 +105,15 @@
 			await sleep(500);
 
 			let action: 0 | 1;
-			if (selectedAgent === 'ppo' && onnxReady) {
+			if (selectedAgent === "random") {
+				action = Math.random() < 0.5 ? 1 : 0;
+			} else if (selectedAgent === "ppo" && onnxReady) {
 				action = await onnxAgent.chooseAction(
 					game.players[AI_IDX],
 					game.players[PLAYER_IDX],
-					game
+					game,
 				);
-			} else if (selectedAgent === 'q' && qReady) {
+			} else if (selectedAgent === "q" && qReady) {
 				action = qAgent.chooseAction(game.players[AI_IDX]);
 			} else {
 				action = Math.random() < 0.4 ? 1 : 0;
@@ -128,7 +132,7 @@
 
 		if (!game.isRoundOver() && !isDone(game.players[PLAYER_IDX])) {
 			playerTurn = true;
-			gameMessage = 'Your turn! Draw or Stay?';
+			gameMessage = "Your turn! Draw or Stay?";
 		}
 	}
 
@@ -148,7 +152,7 @@
 			await runAiTurn();
 		} else if (!isDone(game.players[PLAYER_IDX])) {
 			playerTurn = true;
-			gameMessage = 'Your turn! Draw or Stay?';
+			gameMessage = "Your turn! Draw or Stay?";
 		}
 	}
 
@@ -165,7 +169,7 @@
 				gameMessage = `AI wins! Final: ${gameResult!.scores[0]} - ${gameResult!.scores[1]}`;
 			}
 		} else {
-			gameMessage = 'Round over! Starting next round...';
+			gameMessage = "Round over! Starting next round...";
 			setTimeout(() => startNewRound(), 1500);
 		}
 	}
@@ -187,10 +191,24 @@
 		<div class="start-screen">
 			<p>{gameMessage}</p>
 			<div class="difficulty-buttons">
-				<button class="difficulty-btn medium" onclick={() => startNewGame('q')} disabled={!qReady}>
-					Medium (Q Table)
+				<button
+					class="difficulty-btn easy"
+					onclick={() => startNewGame("random")}
+				>
+					Easy (Random)
 				</button>
-				<button class="difficulty-btn hard" onclick={() => startNewGame('ppo')} disabled={!onnxReady}>
+				<button
+					class="difficulty-btn medium"
+					onclick={() => startNewGame("q")}
+					disabled={!qReady}
+				>
+					Medium (Q Learning)
+				</button>
+				<button
+					class="difficulty-btn hard"
+					onclick={() => startNewGame("ppo")}
+					disabled={!onnxReady}
+				>
 					Hard (PPO)
 				</button>
 			</div>
@@ -232,7 +250,9 @@
 				</h2>
 				<div class="cards">
 					{#each playerHand as card}
-						<div class="card player-card" class:busted={playerBusted}>{card}</div>
+						<div class="card player-card" class:busted={playerBusted}>
+							{card}
+						</div>
 					{/each}
 				</div>
 				<div class="hand-info">Sum: {playerHandSum}</div>
@@ -246,21 +266,43 @@
 						</p>
 						<p class="play-again">Play again? Select an opponent.</p>
 						<div class="difficulty-buttons">
-						<button class="difficulty-btn medium" onclick={() => startNewGame('q')} disabled={!qReady}>
-							Medium (Q Table)
-						</button>
-						<button class="difficulty-btn hard" onclick={() => startNewGame('ppo')} disabled={!onnxReady}>
-							Hard (PPO)
-						</button>
-					</div>
+							<button
+								class="difficulty-btn easy"
+								onclick={() => startNewGame("random")}
+							>
+								Easy (Random)
+							</button>
+							<button
+								class="difficulty-btn medium"
+								onclick={() => startNewGame("q")}
+								disabled={!qReady}
+							>
+								Medium (Q Learning)
+							</button>
+							<button
+								class="difficulty-btn hard"
+								onclick={() => startNewGame("ppo")}
+								disabled={!onnxReady}
+							>
+								Hard (PPO)
+							</button>
+						</div>
 					</div>
 				{:else}
 					<p class="message">{gameMessage}</p>
 					<div class="buttons">
-						<button class="draw-btn" onclick={() => playerAction(1)} disabled={!playerTurn}>
+						<button
+							class="draw-btn"
+							onclick={() => playerAction(1)}
+							disabled={!playerTurn}
+						>
 							Draw
 						</button>
-						<button class="stay-btn" onclick={() => playerAction(0)} disabled={!playerTurn}>
+						<button
+							class="stay-btn"
+							onclick={() => playerAction(0)}
+							disabled={!playerTurn}
+						>
 							Stay
 						</button>
 					</div>
@@ -268,7 +310,11 @@
 			</div>
 
 			<div class="deck-section">
-				<h3>Deck <span class="deck-remaining">({deckRemaining} cards remaining)</span></h3>
+				<h3>
+					Deck <span class="deck-remaining"
+						>({deckRemaining} cards remaining)</span
+					>
+				</h3>
 				<div class="deck-grid">
 					{#each deckCounts as [value, count]}
 						<div class="deck-cell" class:empty={count === 0}>
@@ -285,7 +331,8 @@
 <style>
 	:global(body) {
 		margin: 0;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+			sans-serif;
 		background: #1a1a2e;
 		color: #e0e0e0;
 	}
@@ -394,9 +441,18 @@
 		font-weight: 600;
 	}
 
-	.badge.stayed { background: #2d6a4f; color: #b7e4c7; }
-	.badge.busted { background: #9d0208; color: #ffccd5; }
-	.badge.thinking { background: #0f3460; color: #a8dadc; }
+	.badge.stayed {
+		background: #2d6a4f;
+		color: #b7e4c7;
+	}
+	.badge.busted {
+		background: #9d0208;
+		color: #ffccd5;
+	}
+	.badge.thinking {
+		background: #0f3460;
+		color: #a8dadc;
+	}
 
 	.cards {
 		display: flex;
@@ -418,8 +474,13 @@
 		border: 2px solid #533483;
 	}
 
-	.card.player-card { border-color: #e94560; }
-	.card.busted { opacity: 0.4; border-color: #9d0208; }
+	.card.player-card {
+		border-color: #e94560;
+	}
+	.card.busted {
+		opacity: 0.4;
+		border-color: #9d0208;
+	}
 
 	.hand-info {
 		margin-top: 0.5rem;
@@ -432,7 +493,10 @@
 		margin: 1.5rem 0;
 	}
 
-	.message { margin-bottom: 0.75rem; color: #a8dadc; }
+	.message {
+		margin-bottom: 0.75rem;
+		color: #a8dadc;
+	}
 
 	.buttons {
 		display: flex;
@@ -440,15 +504,36 @@
 		justify-content: center;
 	}
 
-	.draw-btn { background: #e94560; color: white; }
-	.draw-btn:hover:not(:disabled) { background: #c73e54; }
-	.stay-btn { background: #2d6a4f; color: white; }
-	.stay-btn:hover:not(:disabled) { background: #245a42; }
+	.draw-btn {
+		background: #e94560;
+		color: white;
+	}
+	.draw-btn:hover:not(:disabled) {
+		background: #c73e54;
+	}
+	.stay-btn {
+		background: #2d6a4f;
+		color: white;
+	}
+	.stay-btn:hover:not(:disabled) {
+		background: #245a42;
+	}
 
-	.game-over { padding: 1rem; }
-	.result { font-size: 1.25rem; font-weight: 700; color: #e94560; }
-	.result.won { color: #52b788; }
-	.play-again { color: #a8dadc; margin-bottom: 0; }
+	.game-over {
+		padding: 1rem;
+	}
+	.result {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: #e94560;
+	}
+	.result.won {
+		color: #52b788;
+	}
+	.play-again {
+		color: #a8dadc;
+		margin-bottom: 0;
+	}
 
 	.difficulty-buttons {
 		display: flex;
@@ -460,12 +545,28 @@
 	.difficulty-btn {
 		padding: 0.75rem 1.5rem;
 		color: white;
+		white-space: nowrap;
 	}
 
-	.difficulty-btn.medium { background: #2d6a4f; }
-	.difficulty-btn.medium:hover:not(:disabled) { background: #245a42; }
-	.difficulty-btn.hard { background: #e94560; }
-	.difficulty-btn.hard:hover:not(:disabled) { background: #c73e54; }
+	.difficulty-btn.easy {
+		background: #2d6a4f;
+	}
+	.difficulty-btn.easy:hover:not(:disabled) {
+		background: #245a42;
+	}
+	.difficulty-btn.medium {
+		background: #c89b3c;
+		color: #1a1a2e;
+	}
+	.difficulty-btn.medium:hover:not(:disabled) {
+		background: #a8832e;
+	}
+	.difficulty-btn.hard {
+		background: #e94560;
+	}
+	.difficulty-btn.hard:hover:not(:disabled) {
+		background: #c73e54;
+	}
 
 	.deck-section {
 		background: #16213e;
@@ -480,7 +581,9 @@
 		color: #888;
 	}
 
-	.deck-remaining { font-weight: 400; }
+	.deck-remaining {
+		font-weight: 400;
+	}
 
 	.deck-grid {
 		display: grid;
