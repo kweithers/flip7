@@ -98,16 +98,7 @@ class Flip7Env(gym.Env):
         if round_over:
             my_round = player.round_score()
             opp_round = opponent.round_score()
-            score_diff = (my_round - opp_round) / 78.0
-            position = 0.1 * (player.total_score - opponent.total_score) / 200.0
-            base = 0.1 if not player.busted else 0.0
-            reward += base + score_diff + position
-
-        if busted and not round_over:
-            gap = (player.total_score - opponent.total_score) / 200.0
-            positional_factor = 1.0 + max(0.0, gap)
-            cards_factor = max(0.3, 1.0 - len(player.hand) / 10.0)
-            reward += -0.5 * positional_factor * cards_factor
+            reward += (my_round - opp_round) / 78.0
 
         return reward
 

@@ -5,6 +5,7 @@ Stage 2: Self-play fine-tuning (500K steps)
 """
 
 import json
+import pickle
 import random
 
 import numpy as np
@@ -30,11 +31,15 @@ def make_env(opponent_agent, seed):
 class WinRateCallback(BaseCallback):
     """Log win rate using a separate eval environment."""
 
-    def __init__(self, opponent_agent, eval_freq=50_000, n_eval_games=200, verbose=1):
+    def __init__(self, opponent_agent, eval_freq=50_000, n_eval_games=200, verbose=1,
+                 save_best=True, best_model_path="models/ppo_best"):
         super().__init__(verbose)
         self.opponent_agent = opponent_agent
         self.eval_freq = eval_freq
         self.n_eval_games = n_eval_games
+        self.save_best = save_best
+        self.best_model_path = best_model_path
+        self.best_win_rate = 0.0
 
     def _on_step(self) -> bool:
         if self.n_calls % self.eval_freq == 0:
@@ -61,6 +66,21 @@ class WinRateCallback(BaseCallback):
             self.logger.record("eval/win_rate", win_rate)
             if self.verbose:
                 print(f"Step {self.n_calls}: Win rate = {win_rate:.3f}")
+
+            if self.save_best and win_rate > self.best_win_rate:
+                self.best_win_rate = win_rate
+                self.model.save(self.best_model_path)
+                vecnorm_path = f"{self.best_model_path}_vecnorm.pkl"
+                vec_env = self.training_env
+                with open(vecnorm_path, "wb") as f:
+                    pickle.dump({
+                        "obs_rms": vec_env.obs_rms,
+                        "ret_rms": vec_env.ret_rms,
+                        "clip_obs": vec_env.clip_obs,
+                        "norm_obs": vec_env.norm_obs,
+                    }, f)
+                if self.verbose:
+                    print(f"  New best model saved (win rate: {win_rate:.3f})")
         return True
 
 
@@ -78,12 +98,12 @@ def train_stage1(
     q_agent = QAgent.load(q_agent_path)
 
     env = DummyVecEnv([make_env(q_agent, seed + i) for i in range(n_envs)])
-    env = VecNormalize(env, norm_obs=True, norm_reward=True, clip_reward=10.0)
+    env = VecNormalize(env, norm_obs=True, norm_reward=False)
 
     model = PPO(
         "MlpPolicy",
         env,
-        learning_rate=3e-4,
+        learning_rate=1e-4,
         n_steps=2048,
         batch_size=64,
         n_epochs=10,
@@ -127,7 +147,7 @@ def train_stage2(
 
     n_envs = 4
     env = DummyVecEnv([make_env(frozen_agent, seed + i) for i in range(n_envs)])
-    env = VecNormalize(env, norm_obs=True, norm_reward=True, clip_reward=10.0)
+    env = VecNormalize(env, norm_obs=True, norm_reward=False)
 
     # Copy normalization stats from stage 1
     env.obs_rms = vec_env.obs_rms
@@ -190,20 +210,26 @@ def _run_eval(agent1, agent2, num_games):
     print(f"  Avg game length: {avg_rounds:.1f} rounds")
 
 
+def _load_obs_rms(vec_normalize_path: str):
+    """Load obs_rms from either a VecNormalize pickle or our custom dict format."""
+    with open(vec_normalize_path, "rb") as f:
+        data = pickle.load(f)
+    if isinstance(data, dict):
+        return data["obs_rms"]
+    # Standard VecNormalize object
+    return data.obs_rms
+
+
 def evaluate_model(model_path: str, vec_normalize_path: str, num_games: int = 1000):
     """Evaluate the trained PPO model."""
     model = PPO.load(model_path)
 
-    dummy_env = DummyVecEnv([make_env(RandomAgent(), 0)])
-    vec_env = VecNormalize.load(vec_normalize_path, dummy_env)
-    vec_env.training = False
-    vec_env.norm_reward = False
-
-    obs_rms = {
-        "mean": vec_env.obs_rms.mean.astype(np.float32),
-        "var": vec_env.obs_rms.var.astype(np.float32),
+    obs_rms = _load_obs_rms(vec_normalize_path)
+    obs_rms_dict = {
+        "mean": obs_rms.mean.astype(np.float32),
+        "var": obs_rms.var.astype(np.float32),
     }
-    ppo_agent = PPOAgent(model, obs_rms)
+    ppo_agent = PPOAgent(model, obs_rms_dict)
 
     q_agent = QAgent.load("models/q_table.pkl")
     print("\nPPO vs Q-agent:")
@@ -216,11 +242,10 @@ def evaluate_model(model_path: str, vec_normalize_path: str, num_games: int = 10
 
 def export_normalize_stats(vec_normalize_path: str, output_path: str):
     """Export VecNormalize stats as JSON for the webapp."""
-    dummy_env = DummyVecEnv([make_env(RandomAgent(), 0)])
-    vec_env = VecNormalize.load(vec_normalize_path, dummy_env)
+    obs_rms = _load_obs_rms(vec_normalize_path)
     stats = {
-        "mean": vec_env.obs_rms.mean.tolist(),
-        "var": vec_env.obs_rms.var.tolist(),
+        "mean": obs_rms.mean.tolist(),
+        "var": obs_rms.var.tolist(),
     }
     with open(output_path, "w") as f:
         json.dump(stats, f)
@@ -228,7 +253,7 @@ def export_normalize_stats(vec_normalize_path: str, output_path: str):
 
 
 if __name__ == "__main__":
-    model, vec_env = train_stage1(total_timesteps=1_000_000)
-    model, vec_env = train_stage2(model, vec_env, total_timesteps=500_000)
+    model, vec_env = train_stage1(total_timesteps=5_000_000)
+    model, vec_env = train_stage2(model, vec_env, total_timesteps=2_000_000)
     evaluate_model("models/ppo_final.zip", "models/vec_normalize_final.pkl")
     export_normalize_stats("models/vec_normalize_final.pkl", "models/normalize_stats.json")
