@@ -99,16 +99,21 @@ Used by both `Flip7Env` (training) and `OnnxAgent` (browser):
 
 ## PPO Training Pipeline
 
-**Stage 1** (`train_stage1`): 2M steps vs Q-agent opponent, 8 parallel envs, VecNormalize
-**Stage 2** (`train_stage2`): 1M steps self-play, frozen opponent updated every 200k steps
+**Stage 1** (`train_stage1`): 5M steps vs Q-agent opponent, 4 parallel envs, VecNormalize (obs only)
+**Stage 2** (`train_stage2`): 2M steps self-play, frozen opponent updated every 100k steps
 
 PPO hyperparameters:
-- `learning_rate=3e-4`, `n_steps=2048`, `batch_size=128`, `n_epochs=10`
+- `learning_rate=1e-4`, `n_steps=2048`, `batch_size=64`, `n_epochs=10`
 - `gamma=0.99`, `gae_lambda=0.95`, `clip_range=0.2`, `ent_coef=0.01`
 - Network: `pi=[128, 128], vf=[128, 128]`
 - TensorBoard logs: `./tb_logs/`
+- Reward normalization disabled (`norm_reward=False`) — enabling it causes training instability
 
-Best model saved automatically when win rate improves (`WinRateCallback`, every 50k steps, 200 eval games).
+Best model saved automatically when win rate improves (`WinRateCallback`, every 10k steps, 200 eval games).
+- Saves `models/ppo_best.zip` + `models/ppo_best_vecnorm.pkl` (custom dict format, not VecNormalize pickle)
+- The best model typically peaks in Stage 1; Stage 2 self-play tends to degrade the policy
+
+**Training instability note**: Win rate peaks around 60-70%+ early then collapses. Always use `ppo_best.zip`, not `ppo_final.zip`, for deployment.
 
 ## ONNX Export
 
@@ -119,13 +124,19 @@ Normalization stats exported separately as `normalize_stats.json` (mean + var ar
 
 ## Training Results
 
-| Matchup              | Win Rate |
-|----------------------|----------|
-| Q-agent vs Random    | 93.8%    |
-| PPO vs Random        | 88.7%    |
-| PPO vs Q-agent       | 43.8%    |
+| Matchup                    | Win Rate | Notes                          |
+|----------------------------|----------|--------------------------------|
+| Q-agent vs Random          | 93.8%    |                                |
+| PPO (best) vs Random       | 97.4%    | ppo_best.zip, deployed to ONNX |
+| PPO (best) vs Q-agent      | 70.4%    | ppo_best.zip, deployed to ONNX |
+| PPO (final) vs Random      | 91.9%    | after Stage 2 self-play        |
+| PPO (final) vs Q-agent     | 53.8%    | after Stage 2 self-play        |
 
-PPO has not yet beaten Q-agent; needs more training or tuning.
+Key improvements that got PPO from 43.8% → 70.4% vs Q-agent:
+1. Simplified reward: removed context-dependent bust penalty and positional bonus
+2. Disabled reward normalization (`norm_reward=False`)
+3. Lowered learning rate: 3e-4 → 1e-4
+4. More training: 1M → 5M steps in Stage 1
 
 ## Common Commands
 
@@ -147,3 +158,6 @@ npm run build
 - Svelte 5 runes syntax is used (`$state`, `$derived`) — not Svelte 4 stores
 - The `ppo_agent.py` `_build_obs` must stay in sync with `gym_env.py` `_get_obs` and `onnxAgent.ts` `buildObservation` — all three must produce identical 43-dim vectors
 - VecNormalize stats must be re-exported to `normalize_stats.json` any time a new model is trained
+- `ppo_best_vecnorm.pkl` uses a custom dict format (`{obs_rms, ret_rms, clip_obs, norm_obs}`), not the standard VecNormalize pickle — use `_load_obs_rms()` in `train_ppo.py` to load either format
+- `export_normalize_stats` and `evaluate_model` both use `_load_obs_rms()` and handle both formats automatically
+- To deploy a new best model to webapp: run `export_onnx` pointing at `ppo_best.zip` + `ppo_best_vecnorm.pkl`, then copy outputs to `webapp/static/`
