@@ -1,11 +1,13 @@
 """Gymnasium environment for Flip 7 PPO training.
 
-Observation space (41 dims):
+Observation space (43 dims):
   - my_hand_presence (12): binary, do I hold value v?
   - my_hand_size (1): cards / 12
+  - my_hand_sum (1): sum / 78
   - my_total_score (1): score / 200
   - opp_hand_presence (12): binary, does opponent hold v?
   - opp_hand_size (1): cards / 12
+  - opp_hand_sum (1): sum / 78
   - opp_total_score (1): score / 200
   - opp_has_stayed (1): 1 if opponent stayed this round
   - deck_counts (12): count of each value remaining / max count for that value
@@ -35,7 +37,7 @@ class Flip7Env(gym.Env):
 
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(
-            low=0.0, high=1.0, shape=(41,), dtype=np.float32
+            low=0.0, high=1.0, shape=(43,), dtype=np.float32
         )
 
         self.game: Game | None = None
@@ -45,7 +47,7 @@ class Flip7Env(gym.Env):
         opponent = self.game.players[self.OPPONENT_IDX]
         deck_counts = self.game.deck.card_counts()
 
-        obs = np.zeros(41, dtype=np.float32)
+        obs = np.zeros(43, dtype=np.float32)
 
         # My hand presence (12)
         for card in player.hand:
@@ -54,25 +56,31 @@ class Flip7Env(gym.Env):
         # My hand size (1)
         obs[12] = len(player.hand) / 12.0
 
+        # My hand sum (1)
+        obs[13] = sum(player.hand) / 78.0
+
         # My total score (1)
-        obs[13] = min(player.total_score / 200.0, 1.0)
+        obs[14] = min(player.total_score / 200.0, 1.0)
 
         # Opponent hand presence (12)
         for card in opponent.hand:
-            obs[14 + card - 1] = 1.0
+            obs[15 + card - 1] = 1.0
 
         # Opponent hand size (1)
-        obs[26] = len(opponent.hand) / 12.0
+        obs[27] = len(opponent.hand) / 12.0
+
+        # Opponent hand sum (1)
+        obs[28] = sum(opponent.hand) / 78.0
 
         # Opponent total score (1)
-        obs[27] = min(opponent.total_score / 200.0, 1.0)
+        obs[29] = min(opponent.total_score / 200.0, 1.0)
 
         # Opponent has stayed (1)
-        obs[28] = 1.0 if opponent.stayed else 0.0
+        obs[30] = 1.0 if opponent.stayed else 0.0
 
         # Deck counts (12)
         for v in range(1, 13):
-            obs[29 + v - 1] = deck_counts.get(v, 0) / v  # normalize by max count
+            obs[31 + v - 1] = deck_counts.get(v, 0) / v  # normalize by max count
 
         return obs
 

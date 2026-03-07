@@ -1,7 +1,7 @@
 /**
  * ONNX Runtime Web agent for Flip 7.
  * Loads a trained PPO model and normalization stats,
- * builds 41-dim observations, and returns STAY/DRAW decisions.
+ * builds 43-dim observations, and returns STAY/DRAW decisions.
  */
 
 import * as ort from 'onnxruntime-web';
@@ -29,7 +29,7 @@ export class OnnxAgent {
 		opponent: PlayerState,
 		game: Game
 	): Float32Array {
-		const obs = new Float32Array(41);
+		const obs = new Float32Array(43);
 		const deckCounts = game.deck.cardCounts();
 
 		// My hand presence (12)
@@ -40,26 +40,32 @@ export class OnnxAgent {
 		// My hand size (1)
 		obs[12] = player.hand.length / 12.0;
 
+		// My hand sum (1)
+		obs[13] = player.hand.reduce((a, b) => a + b, 0) / 78.0;
+
 		// My total score (1)
-		obs[13] = Math.min(player.totalScore / 200.0, 1.0);
+		obs[14] = Math.min(player.totalScore / 200.0, 1.0);
 
 		// Opponent hand presence (12)
 		for (const card of opponent.hand) {
-			obs[14 + card - 1] = 1.0;
+			obs[15 + card - 1] = 1.0;
 		}
 
 		// Opponent hand size (1)
-		obs[26] = opponent.hand.length / 12.0;
+		obs[27] = opponent.hand.length / 12.0;
+
+		// Opponent hand sum (1)
+		obs[28] = opponent.hand.reduce((a, b) => a + b, 0) / 78.0;
 
 		// Opponent total score (1)
-		obs[27] = Math.min(opponent.totalScore / 200.0, 1.0);
+		obs[29] = Math.min(opponent.totalScore / 200.0, 1.0);
 
 		// Opponent has stayed (1)
-		obs[28] = opponent.stayed ? 1.0 : 0.0;
+		obs[30] = opponent.stayed ? 1.0 : 0.0;
 
 		// Deck counts (12)
 		for (let v = 1; v <= 12; v++) {
-			obs[29 + v - 1] = (deckCounts.get(v) || 0) / v;
+			obs[31 + v - 1] = (deckCounts.get(v) || 0) / v;
 		}
 
 		return obs;
@@ -85,7 +91,7 @@ export class OnnxAgent {
 		const obs = this.buildObservation(player, opponent, game);
 		const normalizedObs = this.normalizeObs(obs);
 
-		const tensor = new ort.Tensor('float32', normalizedObs, [1, 41]);
+		const tensor = new ort.Tensor('float32', normalizedObs, [1, 43]);
 		const results = await this.session.run({ observation: tensor });
 		const logits = results['action_logits'].data as Float32Array;
 

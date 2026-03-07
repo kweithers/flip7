@@ -16,29 +16,33 @@ class PPOAgent(Agent):
         self.obs_rms = obs_rms  # VecNormalize stats if used
 
     def _build_obs(self, player: Player, opponent: Player, game: Game) -> np.ndarray:
-        """Build the 41-dim observation vector."""
+        """Build the 43-dim observation vector."""
         deck_counts = game.deck.card_counts()
-        obs = np.zeros(41, dtype=np.float32)
+        obs = np.zeros(43, dtype=np.float32)
 
         # My hand presence (12)
         for card in player.hand:
             obs[card - 1] = 1.0
         # My hand size (1)
         obs[12] = len(player.hand) / 12.0
+        # My hand sum (1)
+        obs[13] = sum(player.hand) / 78.0
         # My total score (1)
-        obs[13] = min(player.total_score / 200.0, 1.0)
+        obs[14] = min(player.total_score / 200.0, 1.0)
         # Opponent hand presence (12)
         for card in opponent.hand:
-            obs[14 + card - 1] = 1.0
+            obs[15 + card - 1] = 1.0
         # Opponent hand size (1)
-        obs[26] = len(opponent.hand) / 12.0
+        obs[27] = len(opponent.hand) / 12.0
+        # Opponent hand sum (1)
+        obs[28] = sum(opponent.hand) / 78.0
         # Opponent total score (1)
-        obs[27] = min(opponent.total_score / 200.0, 1.0)
+        obs[29] = min(opponent.total_score / 200.0, 1.0)
         # Opponent has stayed (1)
-        obs[28] = 1.0 if opponent.stayed else 0.0
+        obs[30] = 1.0 if opponent.stayed else 0.0
         # Deck counts (12)
         for v in range(1, 13):
-            obs[29 + v - 1] = deck_counts.get(v, 0) / v
+            obs[31 + v - 1] = deck_counts.get(v, 0) / v
 
         return obs
 

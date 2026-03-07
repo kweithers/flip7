@@ -101,7 +101,7 @@ def train_stage1(
         tensorboard_log="./tb_logs/",
     )
 
-    callback = WinRateCallback(q_agent, eval_freq=50_000, n_eval_games=200)
+    callback = WinRateCallback(q_agent, eval_freq=10_000, n_eval_games=200)
     model.learn(total_timesteps=total_timesteps, callback=callback)
 
     model.save("models/ppo_stage1")

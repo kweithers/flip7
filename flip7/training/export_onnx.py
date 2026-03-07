@@ -41,7 +41,7 @@ def export_onnx(
     wrapper.eval()
 
     # Export to ONNX
-    dummy_input = torch.randn(1, 41)
+    dummy_input = torch.randn(1, 43)
     torch.onnx.export(
         wrapper,
         dummy_input,
@@ -76,7 +76,7 @@ def export_onnx(
     # Verify with onnxruntime if available
     try:
         import onnxruntime as ort
-        test_obs = torch.randn(1, 41)
+        test_obs = torch.randn(1, 43)
         with torch.no_grad():
             pytorch_out = wrapper(test_obs).numpy()
         session = ort.InferenceSession(onnx_output)
