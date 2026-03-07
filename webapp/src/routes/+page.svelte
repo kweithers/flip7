@@ -9,15 +9,21 @@
 		type GameResult
 	} from '$lib/gameEngine';
 	import { OnnxAgent } from '$lib/onnxAgent';
+	import { QAgent } from '$lib/qAgent';
+
+	type AgentType = 'q' | 'ppo';
 
 	const PLAYER_IDX = 0;
 	const AI_IDX = 1;
 
 	let game: Game | null = $state(null);
-	let agent = new OnnxAgent();
-	let agentReady = $state(false);
+	let onnxAgent = new OnnxAgent();
+	let qAgent = new QAgent();
+	let onnxReady = $state(false);
+	let qReady = $state(false);
+	let selectedAgent: AgentType | null = $state(null);
 	let playerTurn = $state(false);
-	let gameMessage = $state('Loading AI model...');
+	let gameMessage = $state('Loading AI models...');
 	let gameResult: GameResult | null = $state(null);
 	let aiThinking = $state(false);
 
@@ -53,17 +59,19 @@
 	}
 
 	onMount(async () => {
-		try {
-			await agent.init('/ppo_flip7.onnx', '/normalize_stats.json');
-			agentReady = true;
-			gameMessage = 'AI loaded! Click "New Game" to start.';
-		} catch (e) {
-			gameMessage = `Failed to load AI model: ${e}. Playing with random AI.`;
-			agentReady = false;
+		const results = await Promise.allSettled([
+			qAgent.init('/q_table.json').then(() => { qReady = true; }),
+			onnxAgent.init('/ppo_flip7.onnx', '/normalize_stats.json').then(() => { onnxReady = true; })
+		]);
+		if (qReady || onnxReady) {
+			gameMessage = 'Select an opponent.';
+		} else {
+			gameMessage = 'Failed to load AI models.';
 		}
 	});
 
-	function startNewGame() {
+	function startNewGame(agentType: AgentType) {
+		selectedAgent = agentType;
 		const seed = Math.floor(Math.random() * 2147483647);
 		game = new Game(seed);
 		gameResult = null;
@@ -95,12 +103,14 @@
 			await sleep(500);
 
 			let action: 0 | 1;
-			if (agentReady) {
-				action = await agent.chooseAction(
+			if (selectedAgent === 'ppo' && onnxReady) {
+				action = await onnxAgent.chooseAction(
 					game.players[AI_IDX],
 					game.players[PLAYER_IDX],
 					game
 				);
+			} else if (selectedAgent === 'q' && qReady) {
+				action = qAgent.chooseAction(game.players[AI_IDX]);
 			} else {
 				action = Math.random() < 0.4 ? 1 : 0;
 			}
@@ -176,9 +186,14 @@
 	{#if !game}
 		<div class="start-screen">
 			<p>{gameMessage}</p>
-			<button onclick={() => startNewGame()} disabled={!agentReady && gameMessage.includes('Loading')}>
-				New Game
-			</button>
+			<div class="difficulty-buttons">
+				<button class="difficulty-btn medium" onclick={() => startNewGame('q')} disabled={!qReady}>
+					Medium (Q Table)
+				</button>
+				<button class="difficulty-btn hard" onclick={() => startNewGame('ppo')} disabled={!onnxReady}>
+					Hard (PPO)
+				</button>
+			</div>
 		</div>
 	{:else}
 		<div class="game-board">
@@ -229,7 +244,15 @@
 						<p class="result" class:won={gameResult.winner === PLAYER_IDX}>
 							{gameMessage}
 						</p>
-						<button onclick={() => startNewGame()}>Play Again</button>
+						<p class="play-again">Play again? Select an opponent.</p>
+						<div class="difficulty-buttons">
+						<button class="difficulty-btn medium" onclick={() => startNewGame('q')} disabled={!qReady}>
+							Medium (Q Table)
+						</button>
+						<button class="difficulty-btn hard" onclick={() => startNewGame('ppo')} disabled={!onnxReady}>
+							Hard (PPO)
+						</button>
+					</div>
 					</div>
 				{:else}
 					<p class="message">{gameMessage}</p>
@@ -425,7 +448,24 @@
 	.game-over { padding: 1rem; }
 	.result { font-size: 1.25rem; font-weight: 700; color: #e94560; }
 	.result.won { color: #52b788; }
-	.game-over button { background: #e94560; color: white; margin-top: 0.75rem; }
+	.play-again { color: #a8dadc; margin-bottom: 0; }
+
+	.difficulty-buttons {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		margin-top: 1rem;
+	}
+
+	.difficulty-btn {
+		padding: 0.75rem 1.5rem;
+		color: white;
+	}
+
+	.difficulty-btn.medium { background: #2d6a4f; }
+	.difficulty-btn.medium:hover:not(:disabled) { background: #245a42; }
+	.difficulty-btn.hard { background: #e94560; }
+	.difficulty-btn.hard:hover:not(:disabled) { background: #c73e54; }
 
 	.deck-section {
 		background: #16213e;
