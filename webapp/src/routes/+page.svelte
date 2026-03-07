@@ -17,7 +17,6 @@
 	let agent = new OnnxAgent();
 	let agentReady = $state(false);
 	let playerTurn = $state(false);
-	let roundLog: string[] = $state([]);
 	let gameMessage = $state('Loading AI model...');
 	let gameResult: GameResult | null = $state(null);
 	let aiThinking = $state(false);
@@ -33,6 +32,8 @@
 	let aiStayed = $state(false);
 	let playerHandSum = $state(0);
 	let aiHandSum = $state(0);
+	let deckCounts = $state<[number, number][]>([]);
+	let deckRemaining = $state(0);
 
 	function syncState() {
 		if (!game) return;
@@ -47,6 +48,8 @@
 		aiStayed = game.players[AI_IDX].stayed;
 		playerHandSum = handSum(game.players[PLAYER_IDX]);
 		aiHandSum = handSum(game.players[AI_IDX]);
+		deckCounts = [...game.deck.cardCounts().entries()].sort((a, b) => a[0] - b[0]);
+		deckRemaining = game.deck.remaining();
 	}
 
 	onMount(async () => {
@@ -64,7 +67,6 @@
 		const seed = Math.floor(Math.random() * 2147483647);
 		game = new Game(seed);
 		gameResult = null;
-		roundLog = [];
 		syncState();
 		startNewRound();
 	}
@@ -75,9 +77,6 @@
 		game.currentPlayerIdx = game.roundNumber % 2;
 		game.startRound();
 		syncState();
-
-		addLog(`--- Round ${game.roundNumber} ---`);
-		addLog(`You drew: ${game.players[PLAYER_IDX].hand[0]}, AI drew: ${game.players[AI_IDX].hand[0]}`);
 
 		if (game.currentPlayerIdx === AI_IDX) {
 			playerTurn = false;
@@ -109,17 +108,6 @@
 			const roundOver = game.step(action);
 			syncState();
 
-			if (action === 1) {
-				const lastCard = game.players[AI_IDX].hand[game.players[AI_IDX].hand.length - 1];
-				if (game.players[AI_IDX].busted) {
-					addLog(`AI drew ${lastCard} and BUSTED!`);
-				} else {
-					addLog(`AI drew ${lastCard}`);
-				}
-			} else {
-				addLog(`AI stays with ${handSum(game.players[AI_IDX])} points`);
-			}
-
 			if (roundOver) {
 				endRound();
 				return;
@@ -141,17 +129,6 @@
 		const roundOver = game.step(action);
 		syncState();
 
-		if (action === 1) {
-			const lastCard = game.players[PLAYER_IDX].hand[game.players[PLAYER_IDX].hand.length - 1];
-			if (game.players[PLAYER_IDX].busted) {
-				addLog(`You drew ${lastCard} and BUSTED!`);
-			} else {
-				addLog(`You drew ${lastCard}`);
-			}
-		} else {
-			addLog(`You stay with ${handSum(game.players[PLAYER_IDX])} points`);
-		}
-
 		if (roundOver) {
 			endRound();
 			return;
@@ -168,11 +145,6 @@
 	function endRound() {
 		if (!game) return;
 		aiThinking = false;
-
-		const pScore = roundScore(game.players[PLAYER_IDX]);
-		const aScore = roundScore(game.players[AI_IDX]);
-		addLog(`Round result: You ${pScore}, AI ${aScore}`);
-		addLog(`Totals: You ${game.players[PLAYER_IDX].totalScore}, AI ${game.players[AI_IDX].totalScore}`);
 		syncState();
 
 		if (game.gameOver) {
@@ -186,10 +158,6 @@
 			gameMessage = 'Round over! Starting next round...';
 			setTimeout(() => startNewRound(), 1500);
 		}
-	}
-
-	function addLog(msg: string) {
-		roundLog = [...roundLog, msg];
 	}
 
 	function sleep(ms: number): Promise<void> {
@@ -276,11 +244,14 @@
 				{/if}
 			</div>
 
-			<div class="log">
-				<h3>Game Log</h3>
-				<div class="log-entries">
-					{#each roundLog as entry}
-						<div class="log-entry" class:round-header={entry.startsWith('---')}>{entry}</div>
+			<div class="deck-section">
+				<h3>Deck <span class="deck-remaining">({deckRemaining} cards remaining)</span></h3>
+				<div class="deck-grid">
+					{#each deckCounts as [value, count]}
+						<div class="deck-cell" class:empty={count === 0}>
+							<span class="deck-value">{value}</span>
+							<span class="deck-count">{count}/{value}</span>
+						</div>
 					{/each}
 				</div>
 			</div>
@@ -456,22 +427,49 @@
 	.result.won { color: #52b788; }
 	.game-over button { background: #e94560; color: white; margin-top: 0.75rem; }
 
-	.log {
+	.deck-section {
 		background: #16213e;
 		border-radius: 12px;
 		padding: 1rem;
 		margin-top: 1rem;
 	}
 
-	.log h3 { font-size: 0.9rem; margin: 0 0 0.5rem 0; color: #888; }
-
-	.log-entries {
-		max-height: 200px;
-		overflow-y: auto;
-		font-size: 0.8rem;
-		font-family: monospace;
+	.deck-section h3 {
+		font-size: 0.9rem;
+		margin: 0 0 0.75rem 0;
+		color: #888;
 	}
 
-	.log-entry { padding: 0.15rem 0; color: #aaa; }
-	.log-entry.round-header { color: #e94560; font-weight: 600; margin-top: 0.25rem; }
+	.deck-remaining { font-weight: 400; }
+
+	.deck-grid {
+		display: grid;
+		grid-template-columns: repeat(6, 1fr);
+		gap: 0.4rem;
+	}
+
+	.deck-cell {
+		background: #0f3460;
+		border-radius: 6px;
+		padding: 0.4rem 0.25rem;
+		text-align: center;
+		border: 1px solid #533483;
+	}
+
+	.deck-cell.empty {
+		opacity: 0.25;
+	}
+
+	.deck-value {
+		display: block;
+		font-size: 1rem;
+		font-weight: 700;
+	}
+
+	.deck-count {
+		display: block;
+		font-size: 0.65rem;
+		color: #888;
+		margin-top: 0.1rem;
+	}
 </style>
