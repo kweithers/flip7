@@ -71,6 +71,27 @@
 	let aiHandSum = $state(0);
 	let deckCounts = $state<[number, number][]>([]);
 	let deckRemaining = $state(0);
+	let ezMode = $state(false);
+
+	let bustProb = $derived.by(() => {
+		if (!game || game.gameOver || deckRemaining === 0) return 0;
+		let bustCount = 0;
+		for (const [val, cnt] of deckCounts) {
+			if (playerHand.includes(val)) bustCount += cnt;
+		}
+		return bustCount / deckRemaining;
+	});
+
+	let evDraw = $derived.by(() => {
+		if (!game || game.gameOver || deckRemaining === 0) return 0;
+		let ev = 0;
+		for (const [val, cnt] of deckCounts) {
+			if (!playerHand.includes(val)) {
+				ev += (cnt / deckRemaining) * (playerHandSum + val);
+			}
+		}
+		return ev;
+	});
 
 	function syncState() {
 		if (!game) return;
@@ -268,11 +289,20 @@
 			</div>
 		</div>
 	</div>
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div
+		class="menu-pill ez-toggle"
+		role="button"
+		tabindex="0"
+		onclick={() => (ezMode = !ezMode)}
+	>
+		{ezMode ? "Hide E(Draw) and P(Bust)" : "Show E(Draw) and P(Bust)"}
+	</div>
 </div>
 
 <main>
 	<h1>Flip 7</h1>
-	<p class="subtitle">Push your luck card game</p>
+	<p class="subtitle">A push your luck card game</p>
 
 	{#if !game}
 		<div class="start-screen">
@@ -393,6 +423,21 @@
 							Stay
 						</button>
 					</div>
+					{#if ezMode}
+						<div class="ez-stats">
+							<span class="ez-stat">
+								<span class="ez-label">P(Bust)</span>
+								<span class="ez-value" class:danger={bustProb > 0.5}
+									>{(bustProb * 100).toFixed(1)}%</span
+								>
+							</span>
+							<span class="ez-divider">·</span>
+							<span class="ez-stat">
+								<span class="ez-label">E(Draw)</span>
+								<span class="ez-value">{evDraw.toFixed(1)}</span>
+							</span>
+						</div>
+					{/if}
 				{/if}
 			</div>
 
@@ -730,6 +775,10 @@
 		border-color: #a8dadc;
 	}
 
+	.ez-toggle {
+		cursor: pointer;
+	}
+
 	.tooltip {
 		display: none;
 		position: absolute;
@@ -779,5 +828,38 @@
 
 	.stat-label {
 		color: #888;
+	}
+
+	.ez-stats {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 1rem;
+		gap: 0.6rem;
+		font-size: 0.85rem;
+	}
+
+	.ez-stat {
+		display: flex;
+		gap: 0.3rem;
+		align-items: baseline;
+	}
+
+	.ez-label {
+		color: #888;
+		font-size: 0.75rem;
+	}
+
+	.ez-value {
+		font-weight: 700;
+		color: #a8dadc;
+	}
+
+	.ez-value.danger {
+		color: #e94560;
+	}
+
+	.ez-divider {
+		color: #533483;
 	}
 </style>
