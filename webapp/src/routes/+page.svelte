@@ -12,10 +12,41 @@
 	import { QAgent } from "$lib/qAgent";
 
 	type AgentType = "random" | "q" | "ppo";
+	type AgentStats = { wins: number; losses: number };
+	type Stats = Record<AgentType, AgentStats>;
 
 	const PLAYER_IDX = 0;
 	const AI_IDX = 1;
 
+	function loadStats(): Stats {
+		const defaults: Stats = {
+			random: { wins: 0, losses: 0 },
+			q: { wins: 0, losses: 0 },
+			ppo: { wins: 0, losses: 0 },
+		};
+		if (typeof document === "undefined") return defaults;
+		const match = document.cookie.match(/flip7_stats=([^;]+)/);
+		if (!match) return defaults;
+		try {
+			return { ...defaults, ...JSON.parse(decodeURIComponent(match[1])) };
+		} catch {
+			return defaults;
+		}
+	}
+
+	function saveStats(s: Stats) {
+		const expires = new Date();
+		expires.setFullYear(expires.getFullYear() + 1);
+		document.cookie = `flip7_stats=${encodeURIComponent(JSON.stringify(s))}; expires=${expires.toUTCString()}; path=/`;
+	}
+
+	function winRate(s: AgentStats): string {
+		const total = s.wins + s.losses;
+		if (total === 0) return "–";
+		return `${Math.round((s.wins / total) * 100)}%`;
+	}
+
+	let stats = $state(loadStats());
 	let game: Game | null = $state(null);
 	let onnxAgent = new OnnxAgent();
 	let qAgent = new QAgent();
@@ -61,6 +92,7 @@
 	}
 
 	onMount(async () => {
+		stats = loadStats();
 		const results = await Promise.allSettled([
 			qAgent.init("/q_table.json").then(() => {
 				qReady = true;
@@ -165,8 +197,16 @@
 			gameResult = game.result;
 			if (gameResult!.winner === PLAYER_IDX) {
 				gameMessage = `You win! Final: ${gameResult!.scores[0]} - ${gameResult!.scores[1]}`;
+				if (selectedAgent) {
+					stats[selectedAgent].wins++;
+					saveStats(stats);
+				}
 			} else {
 				gameMessage = `AI wins! Final: ${gameResult!.scores[0]} - ${gameResult!.scores[1]}`;
+				if (selectedAgent) {
+					stats[selectedAgent].losses++;
+					saveStats(stats);
+				}
 			}
 		} else {
 			gameMessage = "Round over! Starting next round...";
@@ -182,6 +222,53 @@
 <svelte:head>
 	<title>Flip 7 - Play Against AI</title>
 </svelte:head>
+
+<div class="corner-menu">
+	<div class="menu-pill">
+		Rules
+		<div class="tooltip rules-tooltip">
+			<strong>How to Play</strong>
+			<ul>
+				<li>
+					<b>Deck:</b> Cards 1–12; value <i>v</i> appears <i>v</i> times (78 total)
+				</li>
+				<li>
+					<b>Draw:</b> Flip a card. Already have it? Bust — score 0 this round
+				</li>
+				<li><b>Stay:</b> Lock in your hand sum for the round</li>
+				<li><b>Win:</b> First to reach 200 total points</li>
+				<li>
+					<b>Tiebreaker:</b> Both cross 200 same round → highest score wins
+				</li>
+				<li><b>Deck:</b> Persists across rounds; reshuffles only when empty</li>
+			</ul>
+		</div>
+	</div>
+	<div class="menu-pill">
+		Stats
+		<div class="tooltip stats-tooltip">
+			<strong>Your Win Rate</strong>
+			<div class="stat-row">
+				<span class="stat-label">Easy (Random)</span>
+				<span
+					>{stats.random.wins}W – {stats.random.losses}L ({winRate(
+						stats.random,
+					)})</span
+				>
+			</div>
+			<div class="stat-row">
+				<span class="stat-label">Medium (Q Learning)</span>
+				<span>{stats.q.wins}W – {stats.q.losses}L ({winRate(stats.q)})</span>
+			</div>
+			<div class="stat-row">
+				<span class="stat-label">Hard (PPO)</span>
+				<span
+					>{stats.ppo.wins}W – {stats.ppo.losses}L ({winRate(stats.ppo)})</span
+				>
+			</div>
+		</div>
+	</div>
+</div>
 
 <main>
 	<h1>Flip 7</h1>
@@ -614,5 +701,83 @@
 		font-size: 0.65rem;
 		color: #888;
 		margin-top: 0.1rem;
+	}
+
+	/* Corner menu */
+	.corner-menu {
+		position: fixed;
+		top: 1rem;
+		right: 1rem;
+		display: flex;
+		gap: 0.5rem;
+		z-index: 100;
+	}
+
+	.menu-pill {
+		position: relative;
+		background: #16213e;
+		border: 1px solid #533483;
+		border-radius: 20px;
+		padding: 0.35rem 0.85rem;
+		font-size: 0.8rem;
+		color: #a8dadc;
+		cursor: default;
+		user-select: none;
+		white-space: nowrap;
+	}
+
+	.menu-pill:hover {
+		border-color: #a8dadc;
+	}
+
+	.tooltip {
+		display: none;
+		position: absolute;
+		top: calc(100% + 0.5rem);
+		right: 0;
+		background: #0f1b38;
+		border: 1px solid #533483;
+		border-radius: 10px;
+		padding: 0.75rem 1rem;
+		min-width: 240px;
+		font-size: 0.8rem;
+		color: #e0e0e0;
+		line-height: 1.5;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+	}
+
+	.menu-pill:hover .tooltip {
+		display: block;
+	}
+
+	.rules-tooltip ul {
+		margin: 0.5rem 0 0 0;
+		padding-left: 1.1rem;
+	}
+
+	.rules-tooltip li {
+		margin-bottom: 0.35rem;
+	}
+
+	.stats-tooltip strong {
+		display: block;
+		margin-bottom: 0.5rem;
+		color: #a8dadc;
+	}
+
+	.stat-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.25rem 0;
+		border-bottom: 1px solid #1e2f5a;
+	}
+
+	.stat-row:last-child {
+		border-bottom: none;
+	}
+
+	.stat-label {
+		color: #888;
 	}
 </style>
