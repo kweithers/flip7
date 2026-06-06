@@ -99,17 +99,16 @@ class Game:
         p1_over = self.players[1].total_score >= self.WINNING_SCORE
 
         if p0_over or p1_over:
-            self.game_over = True
             if p0_over and p1_over:
-                # Both over 200: highest score wins
-                if self.players[0].total_score >= self.players[1].total_score:
-                    winner = 0
-                else:
-                    winner = 1
+                # Both over 200: tied scores mean play another round
+                if self.players[0].total_score == self.players[1].total_score:
+                    return
+                winner = 0 if self.players[0].total_score > self.players[1].total_score else 1
             elif p0_over:
                 winner = 0
             else:
                 winner = 1
+            self.game_over = True
             self.result = GameResult(
                 winner=winner,
                 scores=[p.total_score for p in self.players],
