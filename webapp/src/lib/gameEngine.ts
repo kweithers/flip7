@@ -212,13 +212,15 @@ export class Game {
 		const p1Over = this.players[1].totalScore >= WINNING_SCORE;
 
 		if (p0Over || p1Over) {
-			this.gameOver = true;
 			let winner: number;
 			if (p0Over && p1Over) {
-				winner = this.players[0].totalScore >= this.players[1].totalScore ? 0 : 1;
+				// Both over 200: tied scores mean play another round
+				if (this.players[0].totalScore === this.players[1].totalScore) return;
+				winner = this.players[0].totalScore > this.players[1].totalScore ? 0 : 1;
 			} else {
 				winner = p0Over ? 0 : 1;
 			}
+			this.gameOver = true;
 			this.result = {
 				winner,
 				scores: [this.players[0].totalScore, this.players[1].totalScore]
