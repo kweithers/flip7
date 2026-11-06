@@ -151,6 +151,39 @@ def validate(arm: str, seed: int) -> dict:
     return res
 
 
+def validate_q(args) -> dict:
+    """Learning curve vs the training opponent (Q-agent), same validation seeds."""
+    arm, seed = args
+    from flip7.agents.q_agent import QAgent
+    from flip7.experiments.common import paired_eval
+    from flip7.experiments.curriculum import BASELINE
+    torch.set_num_threads(1)
+    path = run_dir(arm, seed) / "val_q.json"
+    if path.exists():
+        return json.loads(path.read_text())
+    q = QAgent.load(str(BASELINE / "q_table.pkl"))
+    curve = [{"steps": t, "name": name,
+              "val": paired_eval(load_candidate(arm, seed, name), q, VAL_SEEDS)["win_rate"]}
+             for t, name in checkpoints(arm, seed)]
+    path.write_text(json.dumps({"curve": curve}, indent=2))
+    return {"curve": curve}
+
+
+def curves_vs_q(procs: int = 4):
+    jobs = [(a, s) for s in SEEDS for a in ARMS]
+    with Pool(procs) as pool:
+        pool.map(validate_q, jobs)
+    ref = RESULTS / "features_reference.json"
+    data = json.loads(ref.read_text())
+    if "val_q" not in data["ppo_best"]:
+        from flip7.agents.q_agent import QAgent
+        from flip7.experiments.common import paired_eval
+        from flip7.experiments.curriculum import BASELINE
+        q = QAgent.load(str(BASELINE / "q_table.pkl"))
+        data["ppo_best"]["val_q"] = paired_eval(_ppo_best(), q, VAL_SEEDS)["win_rate"]
+        ref.write_text(json.dumps(data, indent=2))
+
+
 class MistakeLogger(Agent):
     """Counts decisions that go against a clear one-step EV (|E(draw)| > 3)."""
 
@@ -300,30 +333,31 @@ def round_robin(procs: int = 4) -> dict:
     return res
 
 
-def plot_curves(vals: dict, ref_val: float, path: Path):
+def plot_curves(panels: list, path: Path):
+    """panels: [(title, ylabel, {arm: {seed: val_dict}}, ref_value)]."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     colors = {"A": "#4C72B0", "B": "#DD8452", "C": "#55A868"}
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=150)
-    for arm, runs in vals.items():
-        xs = None
-        ys = []
-        for seed, v in sorted(runs.items()):
-            x = [c["steps"] / 1e6 for c in v["curve"]]
-            y = [c["val"] * 100 for c in v["curve"]]
-            ax.plot(x, y, color=colors[arm], alpha=0.25, lw=1)
-            xs = x
-            ys.append(y)
-        ax.plot(xs, np.mean(ys, axis=0), color=colors[arm], lw=2.5, marker="o", ms=4,
-                label=f"{arm}: {ARMS[arm]} (mean of {len(ys)})")
-    ax.axhline(ref_val * 100, color="grey", ls="--", lw=1.2, label="ppo_best (deployed)")
-    ax.axhline(50, color="black", lw=0.6, alpha=0.4)
-    ax.set_xlabel("training steps (millions)")
-    ax.set_ylabel("win rate vs ThresholdAgent (%)\nvalidation: 500 seeds x 2 seats")
-    ax.set_title("Learning curves: P(bust)/E(draw) feature ablation")
-    ax.grid(alpha=0.25)
-    ax.legend(loc="lower right", fontsize=8, frameon=False)
+    fig, axes = plt.subplots(1, len(panels), figsize=(7 * len(panels), 5), dpi=150)
+    axes = np.atleast_1d(axes)
+    for ax, (title, ylabel, vals, ref_val) in zip(axes, panels):
+        for arm, runs in vals.items():
+            xs, ys = None, []
+            for seed, v in sorted(runs.items()):
+                x = [c["steps"] / 1e6 for c in v["curve"]]
+                y = [c["val"] * 100 for c in v["curve"]]
+                ax.plot(x, y, color=colors[arm], alpha=0.25, lw=1)
+                xs = x
+                ys.append(y)
+            ax.plot(xs, np.mean(ys, axis=0), color=colors[arm], lw=2.5, marker="o", ms=4,
+                    label=f"{arm}: {ARMS[arm]} (mean of {len(ys)})")
+        ax.axhline(ref_val * 100, color="grey", ls="--", lw=1.2, label="ppo_best (deployed)")
+        ax.set_xlabel("training steps (millions)")
+        ax.set_ylabel(ylabel)
+        ax.set_title(title)
+        ax.grid(alpha=0.25)
+        ax.legend(loc="lower right", fontsize=8, frameon=False)
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)
@@ -335,7 +369,12 @@ def report():
     vals = {a: {s: validate(a, s) for s in SEEDS if (run_dir(a, s) / "val.json").exists()} for a in ARMS}
     tests = {a: {s: json.loads((run_dir(a, s) / "test.json").read_text())
                  for s in SEEDS if (run_dir(a, s) / "test.json").exists()} for a in ARMS}
-    plot_curves(vals, ref["val"], RESULTS / "features_learning_curves.png")
+    panels = [("vs ThresholdAgent (held out)", "win rate (%), validation 500 seeds x 2", vals, ref["val"])]
+    q_vals = {a: {s: json.loads((run_dir(a, s) / "val_q.json").read_text()) for s in SEEDS
+                  if (run_dir(a, s) / "val_q.json").exists()} for a in ARMS}
+    if all(q_vals.values()) and "val_q" in ref:
+        panels.append(("vs Q-agent (training opponent)", "win rate (%), same seeds", q_vals, ref["val_q"]))
+    plot_curves(panels, RESULTS / "features_learning_curves.png")
 
     metrics = ["P1", "P2", "h2h_ppo_best", "q_agent", "random", "mistake_rate"]
 
@@ -448,6 +487,7 @@ def main():
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--round-robin", action="store_true")
     ap.add_argument("--report", action="store_true")
+    ap.add_argument("--curves-q", action="store_true")
     ap.add_argument("--procs", type=int, default=4)
     args = ap.parse_args()
     if args.train:
@@ -456,6 +496,8 @@ def main():
         run_all(args.procs)
     elif args.round_robin:
         round_robin(args.procs)
+    elif args.curves_q:
+        curves_vs_q(args.procs)
     elif args.report:
         report()
     else:

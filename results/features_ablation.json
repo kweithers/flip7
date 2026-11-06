@@ -1,0 +1,19 @@
+{
+  "features_help": true,
+  "p_ba": 0.003082533124118219,
+  "diff_ba": 0.021679999999999977,
+  "c_minus_b": [
+    0.02312000000000003,
+    0.008195060321959007,
+    0.038044939678041054
+  ],
+  "c_as_good": true,
+  "no_harm_B": {
+    "q_agent": true,
+    "random": true
+  },
+  "no_harm_C": {
+    "q_agent": true,
+    "random": true
+  }
+}
