@@ -27,8 +27,8 @@ def is_close_endgame(scores) -> bool:
 class FastPPOAgent(PPOAgent):
     """PPOAgent with a direct torch forward pass (same argmax as predict)."""
 
-    def __init__(self, model: PPO, obs_rms=None):
-        super().__init__(model, obs_rms)
+    def __init__(self, model: PPO, obs_rms=None, obs_variant: str = "base43"):
+        super().__init__(model, obs_rms, obs_variant)
         self.policy = model.policy
         self.policy.set_training_mode(False)
 
@@ -45,11 +45,12 @@ def load_obs_stats(vecnorm_path: str) -> dict:
     return {"mean": rms.mean.astype(np.float32), "var": rms.var.astype(np.float32)}
 
 
-def build_frozen_ppo(model_path: str, vecnorm_path: str, fast: bool = True) -> PPOAgent:
+def build_frozen_ppo(model_path: str, vecnorm_path: str, fast: bool = True,
+                     obs_variant: str = "base43") -> PPOAgent:
     """Load a PPO model + its obs stats (custom dict or VecNormalize pickle)."""
     model = PPO.load(model_path, device="cpu")
     cls = FastPPOAgent if fast else PPOAgent
-    return cls(model, load_obs_stats(vecnorm_path))
+    return cls(model, load_obs_stats(vecnorm_path), obs_variant)
 
 
 def play(agents, seed: int):

@@ -4,6 +4,7 @@ import numpy as np
 from stable_baselines3 import PPO
 
 from flip7.agents.base import Agent
+from flip7.engine.features import build_obs
 from flip7.engine.game import Action, Game
 from flip7.engine.player import Player
 
@@ -11,40 +12,14 @@ from flip7.engine.player import Player
 class PPOAgent(Agent):
     """Wraps a trained SB3 PPO model to play via the Agent interface."""
 
-    def __init__(self, model: PPO, obs_rms=None):
+    def __init__(self, model: PPO, obs_rms=None, obs_variant: str = "base43"):
         self.model = model
+        self.obs_variant = obs_variant
         self.obs_rms = obs_rms  # VecNormalize stats if used
 
     def _build_obs(self, player: Player, opponent: Player, game: Game) -> np.ndarray:
-        """Build the 43-dim observation vector."""
-        deck_counts = game.deck.card_counts()
-        obs = np.zeros(43, dtype=np.float32)
-
-        # My hand presence (12)
-        for card in player.hand:
-            obs[card - 1] = 1.0
-        # My hand size (1)
-        obs[12] = len(player.hand) / 12.0
-        # My hand sum (1)
-        obs[13] = sum(player.hand) / 78.0
-        # My total score (1)
-        obs[14] = min(player.total_score / 200.0, 1.0)
-        # Opponent hand presence (12)
-        for card in opponent.hand:
-            obs[15 + card - 1] = 1.0
-        # Opponent hand size (1)
-        obs[27] = len(opponent.hand) / 12.0
-        # Opponent hand sum (1)
-        obs[28] = sum(opponent.hand) / 78.0
-        # Opponent total score (1)
-        obs[29] = min(opponent.total_score / 200.0, 1.0)
-        # Opponent has stayed (1)
-        obs[30] = 1.0 if opponent.stayed else 0.0
-        # Deck counts (12)
-        for v in range(1, 13):
-            obs[31 + v - 1] = deck_counts.get(v, 0) / v
-
-        return obs
+        """Build the observation vector for this agent's variant (default 43-dim)."""
+        return build_obs(player, opponent, game, self.obs_variant)
 
     def _normalize_obs(self, obs: np.ndarray) -> np.ndarray:
         if self.obs_rms is not None:

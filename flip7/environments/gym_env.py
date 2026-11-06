@@ -22,8 +22,8 @@ import numpy as np
 from gymnasium import spaces
 
 from flip7.agents.base import Agent
+from flip7.engine.features import OBS_DIMS, build_obs, obs_bounds
 from flip7.engine.game import Action, Game
-from flip7.engine.player import Player
 
 
 class Flip7Env(gym.Env):
@@ -39,6 +39,7 @@ class Flip7Env(gym.Env):
         opponent_pool: list[tuple[Agent, float]] | None = None,
         scenario_prob: float = 0.0,
         scenario_sampler: Callable | None = None,
+        obs_variant: str = "base43",
     ):
         """
         opponent_pool: optional [(agent, weight), ...]; one is sampled per episode.
@@ -46,6 +47,7 @@ class Flip7Env(gym.Env):
             (scores, burned cards, who acts first) instead of 0-0.
         scenario_sampler: callable(np_random) -> dict(my_score, opp_score,
             first_parity, burn).
+        obs_variant: observation builder (see flip7.engine.features).
         Defaults reproduce the original behaviour exactly.
         """
         super().__init__()
@@ -58,54 +60,25 @@ class Flip7Env(gym.Env):
             raise ValueError("scenario_prob > 0 requires a scenario_sampler")
         self.is_scenario = False
 
+        if obs_variant not in OBS_DIMS:
+            raise ValueError(f"unknown obs_variant {obs_variant!r}")
+        self.obs_variant = obs_variant
+
         self.action_space = spaces.Discrete(2)
+        low, high = obs_bounds(obs_variant)
         self.observation_space = spaces.Box(
-            low=0.0, high=1.0, shape=(43,), dtype=np.float32
+            low=low, high=high, shape=(OBS_DIMS[obs_variant],), dtype=np.float32
         )
 
         self.game: Game | None = None
 
     def _get_obs(self) -> np.ndarray:
-        player = self.game.players[self.PLAYER_IDX]
-        opponent = self.game.players[self.OPPONENT_IDX]
-        deck_counts = self.game.deck.card_counts()
-
-        obs = np.zeros(43, dtype=np.float32)
-
-        # My hand presence (12)
-        for card in player.hand:
-            obs[card - 1] = 1.0
-
-        # My hand size (1)
-        obs[12] = len(player.hand) / 12.0
-
-        # My hand sum (1)
-        obs[13] = sum(player.hand) / 78.0
-
-        # My total score (1)
-        obs[14] = min(player.total_score / 200.0, 1.0)
-
-        # Opponent hand presence (12)
-        for card in opponent.hand:
-            obs[15 + card - 1] = 1.0
-
-        # Opponent hand size (1)
-        obs[27] = len(opponent.hand) / 12.0
-
-        # Opponent hand sum (1)
-        obs[28] = sum(opponent.hand) / 78.0
-
-        # Opponent total score (1)
-        obs[29] = min(opponent.total_score / 200.0, 1.0)
-
-        # Opponent has stayed (1)
-        obs[30] = 1.0 if opponent.stayed else 0.0
-
-        # Deck counts (12)
-        for v in range(1, 13):
-            obs[31 + v - 1] = deck_counts.get(v, 0) / v  # normalize by max count
-
-        return obs
+        return build_obs(
+            self.game.players[self.PLAYER_IDX],
+            self.game.players[self.OPPONENT_IDX],
+            self.game,
+            self.obs_variant,
+        )
 
     def _compute_reward(self, busted: bool, round_over: bool, game_over: bool) -> float:
         player = self.game.players[self.PLAYER_IDX]
