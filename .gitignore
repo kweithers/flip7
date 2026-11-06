@@ -27,3 +27,4 @@ models/vec_normalize_stage1.pkl
 models/ft/
 models/baseline/
 logs/
+models/feat/
