@@ -15,6 +15,8 @@ Observation space (43 dims):
 Action space: Discrete(2) — 0=STAY, 1=DRAW
 """
 
+from typing import Callable
+
 import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
@@ -30,10 +32,31 @@ class Flip7Env(gym.Env):
     PLAYER_IDX = 0
     OPPONENT_IDX = 1
 
-    def __init__(self, opponent_agent: Agent, render_mode=None):
+    def __init__(
+        self,
+        opponent_agent: Agent,
+        render_mode=None,
+        opponent_pool: list[tuple[Agent, float]] | None = None,
+        scenario_prob: float = 0.0,
+        scenario_sampler: Callable | None = None,
+    ):
+        """
+        opponent_pool: optional [(agent, weight), ...]; one is sampled per episode.
+        scenario_prob: probability an episode starts from a sampled scenario
+            (scores, burned cards, who acts first) instead of 0-0.
+        scenario_sampler: callable(np_random) -> dict(my_score, opp_score,
+            first_parity, burn).
+        Defaults reproduce the original behaviour exactly.
+        """
         super().__init__()
         self.opponent_agent = opponent_agent
         self.render_mode = render_mode
+        self.opponent_pool = opponent_pool
+        self.scenario_prob = scenario_prob
+        self.scenario_sampler = scenario_sampler
+        if scenario_prob > 0 and scenario_sampler is None:
+            raise ValueError("scenario_prob > 0 requires a scenario_sampler")
+        self.is_scenario = False
 
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(
@@ -138,8 +161,34 @@ class Flip7Env(gym.Env):
         super().reset(seed=seed)
         game_seed = self.np_random.integers(0, 2**31)
         self.game = Game(seed=int(game_seed))
+
+        # Only consume extra randomness when the features are enabled, so the
+        # default env produces exactly the same games as before.
+        if self.opponent_pool:
+            agents, weights = zip(*self.opponent_pool)
+            probs = np.asarray(weights, dtype=float) / sum(weights)
+            self.opponent_agent = agents[int(self.np_random.choice(len(agents), p=probs))]
+
+        self.is_scenario = False
+        if self.scenario_prob > 0 and self.np_random.random() < self.scenario_prob:
+            self._apply_scenario(self.scenario_sampler(self.np_random))
+            self.is_scenario = True
+
         self._ensure_player_turn()
         return self._get_obs(), {}
+
+    def _apply_scenario(self, sc: dict):
+        """Set scores, burn cards and choose who acts first, before round 1 starts.
+
+        Must run before _ensure_player_turn(): it reads round_number % 2 to pick
+        the first player, then start_round() increments round_number.
+        """
+        me = self.game.players[self.PLAYER_IDX]
+        opp = self.game.players[self.OPPONENT_IDX]
+        me.total_score = int(sc["my_score"])
+        opp.total_score = int(sc["opp_score"])
+        self.game.deck.burn(int(sc["burn"]))
+        self.game.round_number = int(sc["first_parity"])  # 0: agent first, 1: opponent
 
     def step(self, action):
         action = Action(action)
@@ -185,4 +234,5 @@ class Flip7Env(gym.Env):
             "round": self.game.round_number,
             "my_score": self.game.players[self.PLAYER_IDX].total_score,
             "opp_score": self.game.players[self.OPPONENT_IDX].total_score,
+            "scenario": self.is_scenario,
         }
