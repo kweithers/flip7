@@ -1,0 +1,23 @@
+{
+  "model": "models/baseline/ppo_best.zip",
+  "P2_suite_vs_threshold": {
+    "win_rate": 0.4527027027027027,
+    "games": 3996,
+    "by_type": {
+      "close": 0.46882494004796166,
+      "trailing": 0.1254295532646048,
+      "leading": 0.756872852233677
+    },
+    "by_band": {
+      "150-174": 0.4451951951951952,
+      "175-189": 0.4466966966966967,
+      "190-199": 0.46621621621621623
+    }
+  },
+  "P1_full_vs_threshold": 0.4452,
+  "q_agent": 0.7555,
+  "random": 0.947,
+  "suite_vs_ppo_best": 0.5,
+  "h2h_ppo_best": 0.5,
+  "h2h_ppo_final": 0.6305
+}

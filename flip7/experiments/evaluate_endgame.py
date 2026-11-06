@@ -298,7 +298,9 @@ def paired_eval_seeded(candidate, opponent: SeededRandom, seeds) -> dict:
 
 def evaluate_candidate(model_path: str, out_path: Path | None = None) -> dict:
     from flip7.agents.q_agent import QAgent
+    import torch
     from flip7.experiments.curriculum import BASELINE, ensure_baseline
+    torch.set_num_threads(1)
     ensure_baseline()
     stats = str(BASELINE / "ppo_best_vecnorm.pkl")  # frozen normalization for every candidate
     cand = build_frozen_ppo(model_path, stats)
