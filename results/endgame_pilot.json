@@ -1,0 +1,92 @@
+{
+  "step0": {
+    "P2": 0.4527027027027027,
+    "P1": 0.4452,
+    "q_agent": 0.7555,
+    "random": 0.947,
+    "suite_vs_ppo_best": 0.5,
+    "h2h_ppo_best": 0.5,
+    "h2h_ppo_final": 0.6305
+  },
+  "runs": {
+    "control": {
+      "0": {
+        "P2": 0.47322322322322324,
+        "P1": 0.456,
+        "q_agent": 0.7405,
+        "random": 0.9545,
+        "suite_vs_ppo_best": 0.5147647647647647,
+        "h2h_ppo_best": 0.517,
+        "h2h_ppo_final": 0.644,
+        "scenario_step_share": 0.0
+      },
+      "1": {
+        "P2": 0.47397397397397395,
+        "P1": 0.465,
+        "q_agent": 0.7265,
+        "random": 0.953,
+        "suite_vs_ppo_best": 0.5155155155155156,
+        "h2h_ppo_best": 0.5175,
+        "h2h_ppo_final": 0.646,
+        "scenario_step_share": 0.0
+      },
+      "2": {
+        "P2": 0.4697197197197197,
+        "P1": 0.4776,
+        "q_agent": 0.7285,
+        "random": 0.953,
+        "suite_vs_ppo_best": 0.5137637637637638,
+        "h2h_ppo_best": 0.531,
+        "h2h_ppo_final": 0.662,
+        "scenario_step_share": 0.0
+      },
+      "3": {
+        "P2": 0.47622622622622623,
+        "P1": 0.4736,
+        "q_agent": 0.7405,
+        "random": 0.952,
+        "suite_vs_ppo_best": 0.5145145145145145,
+        "h2h_ppo_best": 0.524,
+        "h2h_ppo_final": 0.6415,
+        "scenario_step_share": 0.0
+      },
+      "4": {
+        "P2": 0.461961961961962,
+        "P1": 0.4704,
+        "q_agent": 0.7365,
+        "random": 0.953,
+        "suite_vs_ppo_best": 0.5135135135135135,
+        "h2h_ppo_best": 0.5225,
+        "h2h_ppo_final": 0.6305,
+        "scenario_step_share": 0.0
+      }
+    },
+    "curriculum": {
+      "0": {
+        "P2": 0.47622622622622623,
+        "P1": 0.4724,
+        "q_agent": 0.7285,
+        "random": 0.957,
+        "suite_vs_ppo_best": 0.524024024024024,
+        "h2h_ppo_best": 0.524,
+        "h2h_ppo_final": 0.653,
+        "scenario_step_share": 0.3084618353074597
+      },
+      "1": {
+        "P2": 0.47622622622622623,
+        "P1": 0.4652,
+        "q_agent": 0.7285,
+        "random": 0.959,
+        "suite_vs_ppo_best": 0.5267767767767768,
+        "h2h_ppo_best": 0.5335,
+        "h2h_ppo_final": 0.6475,
+        "scenario_step_share": 0.3076624716481855
+      }
+    }
+  },
+  "degraded": false,
+  "p2_sd": 0.0055772691127092214,
+  "p2_sd_upper80": 0.008687017294940107,
+  "n_required": 2,
+  "p1_sd": 0.008380453448352303
+}
