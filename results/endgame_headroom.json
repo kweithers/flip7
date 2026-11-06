@@ -1,0 +1,52 @@
+{
+  "threshold_aggression": 0.2,
+  "calibration_tried": [
+    [
+      0.2,
+      0.431
+    ],
+    [
+      0.0,
+      0.436
+    ],
+    [
+      0.5,
+      0.4395
+    ],
+    [
+      1.0,
+      0.4685
+    ],
+    [
+      2.0,
+      0.502
+    ]
+  ],
+  "calibration_in_window": false,
+  "games": 5000,
+  "ppo_win_rate_vs_threshold": 0.4284,
+  "f_close": 0.5426,
+  "close_lost_fraction_of_games": 0.2982,
+  "close_fraction_of_losses": 0.5216934919524143,
+  "headroom_bound": 0.08946,
+  "mde_full_game_equivalent": 0.016277999999999997,
+  "go": true,
+  "score_awareness": {
+    "diff": 0.3712523992477062,
+    "matched_weight": 10381.0
+  },
+  "suite_size": 1998,
+  "suite_per_band": {
+    "150-174": 666,
+    "175-189": 666,
+    "190-199": 666
+  },
+  "burn_samples": 861,
+  "burn_deck_size_quartiles": [
+    0,
+    17,
+    23,
+    29,
+    73
+  ]
+}
