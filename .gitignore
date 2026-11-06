@@ -26,3 +26,4 @@ models/vec_normalize_stage1.pkl
 # Curriculum experiment artifacts
 models/ft/
 models/baseline/
+logs/
