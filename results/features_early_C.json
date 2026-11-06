@@ -1,0 +1,1122 @@
+{
+  "runs": {
+    "0": [
+      {
+        "steps": 0,
+        "name": "ckpt_0",
+        "threshold": 0.0,
+        "q_agent": 0.0
+      },
+      {
+        "steps": 8192,
+        "name": "ckpt_8192",
+        "threshold": 0.0,
+        "q_agent": 0.0
+      },
+      {
+        "steps": 16384,
+        "name": "ckpt_16384",
+        "threshold": 0.398,
+        "q_agent": 0.647
+      },
+      {
+        "steps": 24576,
+        "name": "ckpt_24576",
+        "threshold": 0.466,
+        "q_agent": 0.724
+      },
+      {
+        "steps": 32768,
+        "name": "ckpt_32768",
+        "threshold": 0.475,
+        "q_agent": 0.738
+      },
+      {
+        "steps": 40960,
+        "name": "ckpt_40960",
+        "threshold": 0.462,
+        "q_agent": 0.745
+      },
+      {
+        "steps": 49152,
+        "name": "ckpt_49152",
+        "threshold": 0.475,
+        "q_agent": 0.749
+      },
+      {
+        "steps": 57344,
+        "name": "ckpt_57344",
+        "threshold": 0.489,
+        "q_agent": 0.742
+      },
+      {
+        "steps": 65536,
+        "name": "ckpt_65536",
+        "threshold": 0.469,
+        "q_agent": 0.752
+      },
+      {
+        "steps": 73728,
+        "name": "ckpt_73728",
+        "threshold": 0.482,
+        "q_agent": 0.746
+      },
+      {
+        "steps": 81920,
+        "name": "ckpt_81920",
+        "threshold": 0.484,
+        "q_agent": 0.744
+      },
+      {
+        "steps": 90112,
+        "name": "ckpt_90112",
+        "threshold": 0.49,
+        "q_agent": 0.733
+      },
+      {
+        "steps": 98304,
+        "name": "ckpt_98304",
+        "threshold": 0.491,
+        "q_agent": 0.737
+      },
+      {
+        "steps": 106496,
+        "name": "ckpt_106496",
+        "threshold": 0.489,
+        "q_agent": 0.756
+      },
+      {
+        "steps": 114688,
+        "name": "ckpt_114688",
+        "threshold": 0.484,
+        "q_agent": 0.761
+      },
+      {
+        "steps": 122880,
+        "name": "ckpt_122880",
+        "threshold": 0.491,
+        "q_agent": 0.751
+      },
+      {
+        "steps": 131072,
+        "name": "ckpt_131072",
+        "threshold": 0.493,
+        "q_agent": 0.75
+      },
+      {
+        "steps": 139264,
+        "name": "ckpt_139264",
+        "threshold": 0.496,
+        "q_agent": 0.75
+      },
+      {
+        "steps": 147456,
+        "name": "ckpt_147456",
+        "threshold": 0.489,
+        "q_agent": 0.749
+      },
+      {
+        "steps": 155648,
+        "name": "ckpt_155648",
+        "threshold": 0.485,
+        "q_agent": 0.757
+      },
+      {
+        "steps": 163840,
+        "name": "ckpt_163840",
+        "threshold": 0.486,
+        "q_agent": 0.759
+      },
+      {
+        "steps": 172032,
+        "name": "ckpt_172032",
+        "threshold": 0.491,
+        "q_agent": 0.747
+      },
+      {
+        "steps": 180224,
+        "name": "ckpt_180224",
+        "threshold": 0.502,
+        "q_agent": 0.764
+      },
+      {
+        "steps": 188416,
+        "name": "ckpt_188416",
+        "threshold": 0.507,
+        "q_agent": 0.757
+      },
+      {
+        "steps": 196608,
+        "name": "ckpt_196608",
+        "threshold": 0.487,
+        "q_agent": 0.756
+      },
+      {
+        "steps": 204800,
+        "name": "ckpt_204800",
+        "threshold": 0.487,
+        "q_agent": 0.766
+      },
+      {
+        "steps": 212992,
+        "name": "ckpt_212992",
+        "threshold": 0.482,
+        "q_agent": 0.751
+      },
+      {
+        "steps": 221184,
+        "name": "ckpt_221184",
+        "threshold": 0.481,
+        "q_agent": 0.76
+      },
+      {
+        "steps": 229376,
+        "name": "ckpt_229376",
+        "threshold": 0.476,
+        "q_agent": 0.76
+      },
+      {
+        "steps": 237568,
+        "name": "ckpt_237568",
+        "threshold": 0.466,
+        "q_agent": 0.759
+      },
+      {
+        "steps": 245760,
+        "name": "ckpt_245760",
+        "threshold": 0.463,
+        "q_agent": 0.777
+      },
+      {
+        "steps": 253952,
+        "name": "final",
+        "threshold": 0.472,
+        "q_agent": 0.759
+      }
+    ],
+    "1": [
+      {
+        "steps": 0,
+        "name": "ckpt_0",
+        "threshold": 0.0,
+        "q_agent": 0.0
+      },
+      {
+        "steps": 8192,
+        "name": "ckpt_8192",
+        "threshold": 0.0,
+        "q_agent": 0.0
+      },
+      {
+        "steps": 16384,
+        "name": "ckpt_16384",
+        "threshold": 0.21,
+        "q_agent": 0.465
+      },
+      {
+        "steps": 24576,
+        "name": "ckpt_24576",
+        "threshold": 0.376,
+        "q_agent": 0.621
+      },
+      {
+        "steps": 32768,
+        "name": "ckpt_32768",
+        "threshold": 0.435,
+        "q_agent": 0.713
+      },
+      {
+        "steps": 40960,
+        "name": "ckpt_40960",
+        "threshold": 0.453,
+        "q_agent": 0.715
+      },
+      {
+        "steps": 49152,
+        "name": "ckpt_49152",
+        "threshold": 0.467,
+        "q_agent": 0.723
+      },
+      {
+        "steps": 57344,
+        "name": "ckpt_57344",
+        "threshold": 0.457,
+        "q_agent": 0.729
+      },
+      {
+        "steps": 65536,
+        "name": "ckpt_65536",
+        "threshold": 0.446,
+        "q_agent": 0.725
+      },
+      {
+        "steps": 73728,
+        "name": "ckpt_73728",
+        "threshold": 0.464,
+        "q_agent": 0.743
+      },
+      {
+        "steps": 81920,
+        "name": "ckpt_81920",
+        "threshold": 0.47,
+        "q_agent": 0.745
+      },
+      {
+        "steps": 90112,
+        "name": "ckpt_90112",
+        "threshold": 0.491,
+        "q_agent": 0.748
+      },
+      {
+        "steps": 98304,
+        "name": "ckpt_98304",
+        "threshold": 0.474,
+        "q_agent": 0.737
+      },
+      {
+        "steps": 106496,
+        "name": "ckpt_106496",
+        "threshold": 0.481,
+        "q_agent": 0.767
+      },
+      {
+        "steps": 114688,
+        "name": "ckpt_114688",
+        "threshold": 0.481,
+        "q_agent": 0.753
+      },
+      {
+        "steps": 122880,
+        "name": "ckpt_122880",
+        "threshold": 0.47,
+        "q_agent": 0.762
+      },
+      {
+        "steps": 131072,
+        "name": "ckpt_131072",
+        "threshold": 0.487,
+        "q_agent": 0.769
+      },
+      {
+        "steps": 139264,
+        "name": "ckpt_139264",
+        "threshold": 0.484,
+        "q_agent": 0.764
+      },
+      {
+        "steps": 147456,
+        "name": "ckpt_147456",
+        "threshold": 0.49,
+        "q_agent": 0.766
+      },
+      {
+        "steps": 155648,
+        "name": "ckpt_155648",
+        "threshold": 0.475,
+        "q_agent": 0.763
+      },
+      {
+        "steps": 163840,
+        "name": "ckpt_163840",
+        "threshold": 0.486,
+        "q_agent": 0.772
+      },
+      {
+        "steps": 172032,
+        "name": "ckpt_172032",
+        "threshold": 0.477,
+        "q_agent": 0.763
+      },
+      {
+        "steps": 180224,
+        "name": "ckpt_180224",
+        "threshold": 0.449,
+        "q_agent": 0.757
+      },
+      {
+        "steps": 188416,
+        "name": "ckpt_188416",
+        "threshold": 0.465,
+        "q_agent": 0.764
+      },
+      {
+        "steps": 196608,
+        "name": "ckpt_196608",
+        "threshold": 0.463,
+        "q_agent": 0.766
+      },
+      {
+        "steps": 204800,
+        "name": "ckpt_204800",
+        "threshold": 0.471,
+        "q_agent": 0.764
+      },
+      {
+        "steps": 212992,
+        "name": "ckpt_212992",
+        "threshold": 0.485,
+        "q_agent": 0.762
+      },
+      {
+        "steps": 221184,
+        "name": "ckpt_221184",
+        "threshold": 0.466,
+        "q_agent": 0.745
+      },
+      {
+        "steps": 229376,
+        "name": "ckpt_229376",
+        "threshold": 0.483,
+        "q_agent": 0.755
+      },
+      {
+        "steps": 237568,
+        "name": "ckpt_237568",
+        "threshold": 0.462,
+        "q_agent": 0.741
+      },
+      {
+        "steps": 245760,
+        "name": "ckpt_245760",
+        "threshold": 0.481,
+        "q_agent": 0.747
+      },
+      {
+        "steps": 253952,
+        "name": "final",
+        "threshold": 0.478,
+        "q_agent": 0.753
+      }
+    ],
+    "2": [
+      {
+        "steps": 0,
+        "name": "ckpt_0",
+        "threshold": 0.0,
+        "q_agent": 0.0
+      },
+      {
+        "steps": 8192,
+        "name": "ckpt_8192",
+        "threshold": 0.0,
+        "q_agent": 0.0
+      },
+      {
+        "steps": 16384,
+        "name": "ckpt_16384",
+        "threshold": 0.435,
+        "q_agent": 0.684
+      },
+      {
+        "steps": 24576,
+        "name": "ckpt_24576",
+        "threshold": 0.444,
+        "q_agent": 0.697
+      },
+      {
+        "steps": 32768,
+        "name": "ckpt_32768",
+        "threshold": 0.461,
+        "q_agent": 0.717
+      },
+      {
+        "steps": 40960,
+        "name": "ckpt_40960",
+        "threshold": 0.435,
+        "q_agent": 0.665
+      },
+      {
+        "steps": 49152,
+        "name": "ckpt_49152",
+        "threshold": 0.456,
+        "q_agent": 0.709
+      },
+      {
+        "steps": 57344,
+        "name": "ckpt_57344",
+        "threshold": 0.475,
+        "q_agent": 0.726
+      },
+      {
+        "steps": 65536,
+        "name": "ckpt_65536",
+        "threshold": 0.489,
+        "q_agent": 0.75
+      },
+      {
+        "steps": 73728,
+        "name": "ckpt_73728",
+        "threshold": 0.462,
+        "q_agent": 0.749
+      },
+      {
+        "steps": 81920,
+        "name": "ckpt_81920",
+        "threshold": 0.484,
+        "q_agent": 0.771
+      },
+      {
+        "steps": 90112,
+        "name": "ckpt_90112",
+        "threshold": 0.488,
+        "q_agent": 0.756
+      },
+      {
+        "steps": 98304,
+        "name": "ckpt_98304",
+        "threshold": 0.492,
+        "q_agent": 0.77
+      },
+      {
+        "steps": 106496,
+        "name": "ckpt_106496",
+        "threshold": 0.492,
+        "q_agent": 0.767
+      },
+      {
+        "steps": 114688,
+        "name": "ckpt_114688",
+        "threshold": 0.483,
+        "q_agent": 0.753
+      },
+      {
+        "steps": 122880,
+        "name": "ckpt_122880",
+        "threshold": 0.483,
+        "q_agent": 0.764
+      },
+      {
+        "steps": 131072,
+        "name": "ckpt_131072",
+        "threshold": 0.474,
+        "q_agent": 0.76
+      },
+      {
+        "steps": 139264,
+        "name": "ckpt_139264",
+        "threshold": 0.479,
+        "q_agent": 0.753
+      },
+      {
+        "steps": 147456,
+        "name": "ckpt_147456",
+        "threshold": 0.487,
+        "q_agent": 0.759
+      },
+      {
+        "steps": 155648,
+        "name": "ckpt_155648",
+        "threshold": 0.479,
+        "q_agent": 0.765
+      },
+      {
+        "steps": 163840,
+        "name": "ckpt_163840",
+        "threshold": 0.478,
+        "q_agent": 0.751
+      },
+      {
+        "steps": 172032,
+        "name": "ckpt_172032",
+        "threshold": 0.475,
+        "q_agent": 0.761
+      },
+      {
+        "steps": 180224,
+        "name": "ckpt_180224",
+        "threshold": 0.467,
+        "q_agent": 0.756
+      },
+      {
+        "steps": 188416,
+        "name": "ckpt_188416",
+        "threshold": 0.475,
+        "q_agent": 0.755
+      },
+      {
+        "steps": 196608,
+        "name": "ckpt_196608",
+        "threshold": 0.484,
+        "q_agent": 0.734
+      },
+      {
+        "steps": 204800,
+        "name": "ckpt_204800",
+        "threshold": 0.473,
+        "q_agent": 0.746
+      },
+      {
+        "steps": 212992,
+        "name": "ckpt_212992",
+        "threshold": 0.478,
+        "q_agent": 0.757
+      },
+      {
+        "steps": 221184,
+        "name": "ckpt_221184",
+        "threshold": 0.469,
+        "q_agent": 0.756
+      },
+      {
+        "steps": 229376,
+        "name": "ckpt_229376",
+        "threshold": 0.481,
+        "q_agent": 0.765
+      },
+      {
+        "steps": 237568,
+        "name": "ckpt_237568",
+        "threshold": 0.469,
+        "q_agent": 0.754
+      },
+      {
+        "steps": 245760,
+        "name": "ckpt_245760",
+        "threshold": 0.482,
+        "q_agent": 0.754
+      },
+      {
+        "steps": 253952,
+        "name": "final",
+        "threshold": 0.484,
+        "q_agent": 0.763
+      }
+    ],
+    "3": [
+      {
+        "steps": 0,
+        "name": "ckpt_0",
+        "threshold": 0.0,
+        "q_agent": 0.0
+      },
+      {
+        "steps": 8192,
+        "name": "ckpt_8192",
+        "threshold": 0.011,
+        "q_agent": 0.046
+      },
+      {
+        "steps": 16384,
+        "name": "ckpt_16384",
+        "threshold": 0.417,
+        "q_agent": 0.692
+      },
+      {
+        "steps": 24576,
+        "name": "ckpt_24576",
+        "threshold": 0.442,
+        "q_agent": 0.744
+      },
+      {
+        "steps": 32768,
+        "name": "ckpt_32768",
+        "threshold": 0.472,
+        "q_agent": 0.743
+      },
+      {
+        "steps": 40960,
+        "name": "ckpt_40960",
+        "threshold": 0.466,
+        "q_agent": 0.735
+      },
+      {
+        "steps": 49152,
+        "name": "ckpt_49152",
+        "threshold": 0.472,
+        "q_agent": 0.729
+      },
+      {
+        "steps": 57344,
+        "name": "ckpt_57344",
+        "threshold": 0.479,
+        "q_agent": 0.737
+      },
+      {
+        "steps": 65536,
+        "name": "ckpt_65536",
+        "threshold": 0.478,
+        "q_agent": 0.731
+      },
+      {
+        "steps": 73728,
+        "name": "ckpt_73728",
+        "threshold": 0.484,
+        "q_agent": 0.734
+      },
+      {
+        "steps": 81920,
+        "name": "ckpt_81920",
+        "threshold": 0.491,
+        "q_agent": 0.73
+      },
+      {
+        "steps": 90112,
+        "name": "ckpt_90112",
+        "threshold": 0.486,
+        "q_agent": 0.724
+      },
+      {
+        "steps": 98304,
+        "name": "ckpt_98304",
+        "threshold": 0.495,
+        "q_agent": 0.746
+      },
+      {
+        "steps": 106496,
+        "name": "ckpt_106496",
+        "threshold": 0.478,
+        "q_agent": 0.754
+      },
+      {
+        "steps": 114688,
+        "name": "ckpt_114688",
+        "threshold": 0.479,
+        "q_agent": 0.755
+      },
+      {
+        "steps": 122880,
+        "name": "ckpt_122880",
+        "threshold": 0.472,
+        "q_agent": 0.756
+      },
+      {
+        "steps": 131072,
+        "name": "ckpt_131072",
+        "threshold": 0.49,
+        "q_agent": 0.762
+      },
+      {
+        "steps": 139264,
+        "name": "ckpt_139264",
+        "threshold": 0.49,
+        "q_agent": 0.762
+      },
+      {
+        "steps": 147456,
+        "name": "ckpt_147456",
+        "threshold": 0.48,
+        "q_agent": 0.771
+      },
+      {
+        "steps": 155648,
+        "name": "ckpt_155648",
+        "threshold": 0.49,
+        "q_agent": 0.748
+      },
+      {
+        "steps": 163840,
+        "name": "ckpt_163840",
+        "threshold": 0.48,
+        "q_agent": 0.758
+      },
+      {
+        "steps": 172032,
+        "name": "ckpt_172032",
+        "threshold": 0.488,
+        "q_agent": 0.767
+      },
+      {
+        "steps": 180224,
+        "name": "ckpt_180224",
+        "threshold": 0.488,
+        "q_agent": 0.753
+      },
+      {
+        "steps": 188416,
+        "name": "ckpt_188416",
+        "threshold": 0.497,
+        "q_agent": 0.757
+      },
+      {
+        "steps": 196608,
+        "name": "ckpt_196608",
+        "threshold": 0.495,
+        "q_agent": 0.77
+      },
+      {
+        "steps": 204800,
+        "name": "ckpt_204800",
+        "threshold": 0.488,
+        "q_agent": 0.768
+      },
+      {
+        "steps": 212992,
+        "name": "ckpt_212992",
+        "threshold": 0.495,
+        "q_agent": 0.761
+      },
+      {
+        "steps": 221184,
+        "name": "ckpt_221184",
+        "threshold": 0.49,
+        "q_agent": 0.763
+      },
+      {
+        "steps": 229376,
+        "name": "ckpt_229376",
+        "threshold": 0.479,
+        "q_agent": 0.762
+      },
+      {
+        "steps": 237568,
+        "name": "ckpt_237568",
+        "threshold": 0.48,
+        "q_agent": 0.754
+      },
+      {
+        "steps": 245760,
+        "name": "ckpt_245760",
+        "threshold": 0.494,
+        "q_agent": 0.761
+      },
+      {
+        "steps": 253952,
+        "name": "final",
+        "threshold": 0.489,
+        "q_agent": 0.76
+      }
+    ],
+    "4": [
+      {
+        "steps": 0,
+        "name": "ckpt_0",
+        "threshold": 0.0,
+        "q_agent": 0.0
+      },
+      {
+        "steps": 8192,
+        "name": "ckpt_8192",
+        "threshold": 0.027,
+        "q_agent": 0.076
+      },
+      {
+        "steps": 16384,
+        "name": "ckpt_16384",
+        "threshold": 0.381,
+        "q_agent": 0.583
+      },
+      {
+        "steps": 24576,
+        "name": "ckpt_24576",
+        "threshold": 0.462,
+        "q_agent": 0.691
+      },
+      {
+        "steps": 32768,
+        "name": "ckpt_32768",
+        "threshold": 0.471,
+        "q_agent": 0.72
+      },
+      {
+        "steps": 40960,
+        "name": "ckpt_40960",
+        "threshold": 0.472,
+        "q_agent": 0.722
+      },
+      {
+        "steps": 49152,
+        "name": "ckpt_49152",
+        "threshold": 0.494,
+        "q_agent": 0.734
+      },
+      {
+        "steps": 57344,
+        "name": "ckpt_57344",
+        "threshold": 0.466,
+        "q_agent": 0.743
+      },
+      {
+        "steps": 65536,
+        "name": "ckpt_65536",
+        "threshold": 0.481,
+        "q_agent": 0.744
+      },
+      {
+        "steps": 73728,
+        "name": "ckpt_73728",
+        "threshold": 0.486,
+        "q_agent": 0.732
+      },
+      {
+        "steps": 81920,
+        "name": "ckpt_81920",
+        "threshold": 0.48,
+        "q_agent": 0.745
+      },
+      {
+        "steps": 90112,
+        "name": "ckpt_90112",
+        "threshold": 0.481,
+        "q_agent": 0.76
+      },
+      {
+        "steps": 98304,
+        "name": "ckpt_98304",
+        "threshold": 0.482,
+        "q_agent": 0.765
+      },
+      {
+        "steps": 106496,
+        "name": "ckpt_106496",
+        "threshold": 0.477,
+        "q_agent": 0.766
+      },
+      {
+        "steps": 114688,
+        "name": "ckpt_114688",
+        "threshold": 0.478,
+        "q_agent": 0.758
+      },
+      {
+        "steps": 122880,
+        "name": "ckpt_122880",
+        "threshold": 0.498,
+        "q_agent": 0.752
+      },
+      {
+        "steps": 131072,
+        "name": "ckpt_131072",
+        "threshold": 0.49,
+        "q_agent": 0.742
+      },
+      {
+        "steps": 139264,
+        "name": "ckpt_139264",
+        "threshold": 0.477,
+        "q_agent": 0.742
+      },
+      {
+        "steps": 147456,
+        "name": "ckpt_147456",
+        "threshold": 0.48,
+        "q_agent": 0.751
+      },
+      {
+        "steps": 155648,
+        "name": "ckpt_155648",
+        "threshold": 0.485,
+        "q_agent": 0.766
+      },
+      {
+        "steps": 163840,
+        "name": "ckpt_163840",
+        "threshold": 0.488,
+        "q_agent": 0.76
+      },
+      {
+        "steps": 172032,
+        "name": "ckpt_172032",
+        "threshold": 0.482,
+        "q_agent": 0.766
+      },
+      {
+        "steps": 180224,
+        "name": "ckpt_180224",
+        "threshold": 0.479,
+        "q_agent": 0.754
+      },
+      {
+        "steps": 188416,
+        "name": "ckpt_188416",
+        "threshold": 0.487,
+        "q_agent": 0.755
+      },
+      {
+        "steps": 196608,
+        "name": "ckpt_196608",
+        "threshold": 0.474,
+        "q_agent": 0.753
+      },
+      {
+        "steps": 204800,
+        "name": "ckpt_204800",
+        "threshold": 0.488,
+        "q_agent": 0.76
+      },
+      {
+        "steps": 212992,
+        "name": "ckpt_212992",
+        "threshold": 0.479,
+        "q_agent": 0.758
+      },
+      {
+        "steps": 221184,
+        "name": "ckpt_221184",
+        "threshold": 0.493,
+        "q_agent": 0.755
+      },
+      {
+        "steps": 229376,
+        "name": "ckpt_229376",
+        "threshold": 0.476,
+        "q_agent": 0.744
+      },
+      {
+        "steps": 237568,
+        "name": "ckpt_237568",
+        "threshold": 0.491,
+        "q_agent": 0.755
+      },
+      {
+        "steps": 245760,
+        "name": "ckpt_245760",
+        "threshold": 0.482,
+        "q_agent": 0.754
+      },
+      {
+        "steps": 253952,
+        "name": "final",
+        "threshold": 0.476,
+        "q_agent": 0.75
+      }
+    ]
+  },
+  "summary": [
+    {
+      "metric": "threshold",
+      "steps": [
+        0,
+        8192,
+        16384,
+        24576,
+        32768,
+        40960,
+        49152,
+        57344,
+        65536,
+        73728,
+        81920,
+        90112,
+        98304,
+        106496,
+        114688,
+        122880,
+        131072,
+        139264,
+        147456,
+        155648,
+        163840,
+        172032,
+        180224,
+        188416,
+        196608,
+        204800,
+        212992,
+        221184,
+        229376,
+        237568,
+        245760,
+        253952
+      ],
+      "mean": [
+        0.0,
+        0.0076,
+        0.36819999999999997,
+        0.438,
+        0.4628,
+        0.45760000000000006,
+        0.4728,
+        0.4732,
+        0.4726,
+        0.4756,
+        0.48179999999999995,
+        0.48719999999999997,
+        0.4868,
+        0.48339999999999994,
+        0.48100000000000004,
+        0.48279999999999995,
+        0.4868,
+        0.4852,
+        0.4852,
+        0.4828,
+        0.48360000000000003,
+        0.48260000000000003,
+        0.47700000000000004,
+        0.4862,
+        0.4805999999999999,
+        0.4814,
+        0.4838,
+        0.4798,
+        0.479,
+        0.47359999999999997,
+        0.48040000000000005,
+        0.4798
+      ],
+      "peak_steps": 90112,
+      "peak": 0.48719999999999997
+    },
+    {
+      "metric": "q_agent",
+      "steps": [
+        0,
+        8192,
+        16384,
+        24576,
+        32768,
+        40960,
+        49152,
+        57344,
+        65536,
+        73728,
+        81920,
+        90112,
+        98304,
+        106496,
+        114688,
+        122880,
+        131072,
+        139264,
+        147456,
+        155648,
+        163840,
+        172032,
+        180224,
+        188416,
+        196608,
+        204800,
+        212992,
+        221184,
+        229376,
+        237568,
+        245760,
+        253952
+      ],
+      "mean": [
+        0.0,
+        0.024399999999999998,
+        0.6142000000000001,
+        0.6953999999999999,
+        0.7262000000000001,
+        0.7163999999999999,
+        0.7288,
+        0.7354,
+        0.7404,
+        0.7407999999999999,
+        0.747,
+        0.7442,
+        0.751,
+        0.762,
+        0.756,
+        0.757,
+        0.7565999999999999,
+        0.7542,
+        0.7592,
+        0.7598,
+        0.76,
+        0.7607999999999999,
+        0.7568,
+        0.7575999999999999,
+        0.7558,
+        0.7607999999999999,
+        0.7578,
+        0.7558,
+        0.7572000000000001,
+        0.7525999999999999,
+        0.7586,
+        0.757
+      ],
+      "peak_steps": 106496,
+      "peak": 0.762
+    }
+  ]
+}
