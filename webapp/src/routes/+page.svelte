@@ -302,7 +302,7 @@
 
 <main>
 	<h1>Flip 7</h1>
-	<p class="subtitle">A push your luck card game</p>
+	<p class="subtitle">Push your luck! Draw a duplicate and you bust. First to 200 wins.</p>
 
 	{#if !game}
 		<div class="start-screen">
