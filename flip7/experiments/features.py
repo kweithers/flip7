@@ -40,8 +40,8 @@ EV_CLEAR = 3.0
 DECK_BUCKETS = [("<20", 0, 20), ("20-40", 20, 41), ("40+", 41, 79)]
 
 
-def run_dir(arm, seed) -> Path:
-    return OUT / f"{arm}_s{seed}"
+def run_dir(arm, seed, root: Path | None = None) -> Path:
+    return (root or OUT) / f"{arm}_s{seed}"
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +54,8 @@ def _save_stats(vec_env, path: Path):
                      "clip_obs": vec_env.clip_obs, "norm_obs": vec_env.norm_obs}, f)
 
 
-def train(arm: str, seed: int, steps: int = STEPS, ckpt_every: int = CKPT_EVERY) -> Path:
+def train(arm: str, seed: int, steps: int = STEPS, ckpt_every: int = CKPT_EVERY,
+          root: Path | None = None, save_initial: bool = False) -> Path:
     from stable_baselines3 import PPO
     from stable_baselines3.common.callbacks import BaseCallback
     from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
@@ -66,7 +67,7 @@ def train(arm: str, seed: int, steps: int = STEPS, ckpt_every: int = CKPT_EVERY)
     torch.set_num_threads(1)
     ensure_baseline()
     variant = ARMS[arm]
-    out = run_dir(arm, seed)
+    out = run_dir(arm, seed, root)
     out.mkdir(parents=True, exist_ok=True)
     q_agent = QAgent.load(str(BASELINE / "q_table.pkl"))
 
@@ -93,6 +94,9 @@ def train(arm: str, seed: int, steps: int = STEPS, ckpt_every: int = CKPT_EVERY)
                 _save_stats(self.training_env, out / f"ckpt_{t}_vecnorm.pkl")
             return True
 
+    if save_initial:  # untrained policy, with the (still default) normalization stats
+        model.save(str(out / "ckpt_0"))
+        _save_stats(env, out / "ckpt_0_vecnorm.pkl")
     t0 = time.time()
     model.learn(total_timesteps=steps, callback=Ckpt())
     model.save(str(out / "final"))
@@ -104,17 +108,17 @@ def train(arm: str, seed: int, steps: int = STEPS, ckpt_every: int = CKPT_EVERY)
     return out
 
 
-def checkpoints(arm, seed) -> list[tuple[int, str]]:
+def checkpoints(arm, seed, root: Path | None = None) -> list[tuple[int, str]]:
     """(steps, name) for every saved checkpoint, final last."""
-    d = run_dir(arm, seed)
+    d = run_dir(arm, seed, root)
     ck = sorted((int(p.stem.split("_")[1]), p.stem) for p in d.glob("ckpt_*.zip"))
     meta = json.loads((d / "meta.json").read_text())
     return ck + [(meta["actual_steps"], "final")]
 
 
-def load_candidate(arm, seed, name):
+def load_candidate(arm, seed, name, root: Path | None = None):
     from flip7.experiments.common import build_frozen_ppo
-    d = run_dir(arm, seed)
+    d = run_dir(arm, seed, root)
     return build_frozen_ppo(str(d / f"{name}.zip"), str(d / f"{name}_vecnorm.pkl"),
                             obs_variant=ARMS[arm])
 
@@ -333,7 +337,8 @@ def round_robin(procs: int = 4) -> dict:
     return res
 
 
-def plot_curves(panels: list, path: Path):
+def plot_curves(panels: list, path: Path, xscale: float = 1e6,
+                xlabel: str = "training steps (millions)"):
     """panels: [(title, ylabel, {arm: {seed: val_dict}}, ref_value)]."""
     import matplotlib
     matplotlib.use("Agg")
@@ -345,7 +350,7 @@ def plot_curves(panels: list, path: Path):
         for arm, runs in vals.items():
             xs, ys = None, []
             for seed, v in sorted(runs.items()):
-                x = [c["steps"] / 1e6 for c in v["curve"]]
+                x = [c["steps"] / xscale for c in v["curve"]]
                 y = [c["val"] * 100 for c in v["curve"]]
                 ax.plot(x, y, color=colors[arm], alpha=0.25, lw=1)
                 xs = x
@@ -353,7 +358,7 @@ def plot_curves(panels: list, path: Path):
             ax.plot(xs, np.mean(ys, axis=0), color=colors[arm], lw=2.5, marker="o", ms=4,
                     label=f"{arm}: {ARMS[arm]} (mean of {len(ys)})")
         ax.axhline(ref_val * 100, color="grey", ls="--", lw=1.2, label="ppo_best (deployed)")
-        ax.set_xlabel("training steps (millions)")
+        ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(title)
         ax.grid(alpha=0.25)
@@ -478,6 +483,64 @@ def _diff_ci(x, y):
     return float(d), float(d - h), float(d + h)
 
 
+# ---------------------------------------------------------------------------
+# Early-training zoom: arm C, 0 -> 250k steps, one checkpoint per PPO update
+# ---------------------------------------------------------------------------
+
+EARLY_ROOT = Path("models/feat_early")
+EARLY_STEPS = 250_000
+EARLY_EVERY = N_ENVS * 2048  # one PPO update = 8,192 steps; policy is constant in between
+
+
+def _early_job(args):
+    arm, seed = args
+    if not (run_dir(arm, seed, EARLY_ROOT) / "meta.json").exists():
+        train(arm, seed, EARLY_STEPS, EARLY_EVERY, root=EARLY_ROOT, save_initial=True)
+    return _early_eval(arm, seed)
+
+
+def _early_eval(arm, seed):
+    from flip7.agents.q_agent import QAgent
+    from flip7.experiments.common import paired_eval
+    from flip7.experiments.curriculum import BASELINE
+    torch.set_num_threads(1)
+    path = run_dir(arm, seed, EARLY_ROOT) / "early_val.json"
+    if path.exists():
+        return json.loads(path.read_text())
+    thr, q = _threshold(), QAgent.load(str(BASELINE / "q_table.pkl"))
+    rows = []
+    for t, name in checkpoints(arm, seed, EARLY_ROOT):
+        cand = load_candidate(arm, seed, name, EARLY_ROOT)
+        rows.append({"steps": t, "name": name,
+                     "threshold": paired_eval(cand, thr, VAL_SEEDS)["win_rate"],
+                     "q_agent": paired_eval(cand, q, VAL_SEEDS)["win_rate"]})
+    path.write_text(json.dumps(rows, indent=2))
+    return rows
+
+
+def early(arm: str = "C", procs: int = 4):
+    with Pool(procs, maxtasksperchild=1) as pool:
+        runs = dict(zip(SEEDS, pool.map(_early_job, [(arm, s) for s in SEEDS])))
+    ref = json.loads((RESULTS / "features_reference.json").read_text())["ppo_best"]
+    panels = []
+    for key, title, ref_val in [("threshold", "vs ThresholdAgent (held out)", ref["val"]),
+                                ("q_agent", "vs Q-agent (training opponent)", ref["val_q"])]:
+        vals = {arm: {s: {"curve": [{"steps": r["steps"], "val": r[key]} for r in rows]}
+                      for s, rows in runs.items()}}
+        panels.append((title, "win rate (%), validation 500 seeds x 2", vals, ref_val))
+    plot_curves(panels, RESULTS / f"features_early_{arm}.png", xscale=1e3, xlabel="training steps (thousands)")
+    summary = []
+    for key in ("threshold", "q_agent"):
+        mean = np.mean([[r[key] for r in rows] for rows in runs.values()], axis=0)
+        steps = [r["steps"] for r in next(iter(runs.values()))]
+        summary.append({"metric": key, "steps": steps, "mean": mean.tolist(),
+                        "peak_steps": steps[int(np.argmax(mean))], "peak": float(mean.max())})
+    (RESULTS / f"features_early_{arm}.json").write_text(json.dumps({"runs": runs, "summary": summary}, indent=2))
+    for m in summary:
+        print(m["metric"], "peak", round(m["peak"], 3), "at", m["peak_steps"])
+        print("  ", [f"{x // 1000}k:{y:.3f}" for x, y in zip(m["steps"], m["mean"])])
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--train", choices=list(ARMS))
@@ -485,6 +548,7 @@ def main():
     ap.add_argument("--steps", type=int, default=STEPS)
     ap.add_argument("--ckpt-every", type=int, default=CKPT_EVERY)
     ap.add_argument("--all", action="store_true")
+    ap.add_argument("--early", action="store_true", help="arm C, 0-250k steps, every PPO update")
     ap.add_argument("--round-robin", action="store_true")
     ap.add_argument("--report", action="store_true")
     ap.add_argument("--curves-q", action="store_true")
@@ -492,6 +556,8 @@ def main():
     args = ap.parse_args()
     if args.train:
         train(args.train, args.seed, args.steps, args.ckpt_every)
+    elif args.early:
+        early("C", args.procs)
     elif args.all:
         run_all(args.procs)
     elif args.round_robin:
