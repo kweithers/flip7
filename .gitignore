@@ -22,3 +22,7 @@ models/vec_normalize_stage1.pkl
 
 # pytest
 .pytest_cache/
+
+# Curriculum experiment artifacts
+models/ft/
+models/baseline/

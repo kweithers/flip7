@@ -32,6 +32,13 @@ class Deck:
             self._cards.extend([value] * available)
         self.rng.shuffle(self._cards)
 
+    def burn(self, k: int) -> None:
+        """Discard the top k cards without reshuffling (k must be <= remaining)."""
+        if k > len(self._cards):
+            raise ValueError(f"cannot burn {k} cards, only {len(self._cards)} remain")
+        if k > 0:
+            del self._cards[-k:]
+
     def remaining(self) -> int:
         return len(self._cards)
 
